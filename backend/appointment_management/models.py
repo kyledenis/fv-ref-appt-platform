@@ -96,27 +96,3 @@ class Distance(models.Model):
     
     
 
-    
-
-    
-    
-    
-    
-        
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-    def __str__(self):
-        return f"{self.type} on {self.date} at {self.time}"
-    
-    
-    ## TODO:
-        # Find Janie documentation on relational model of entities 
-        # Implement models and cardinalities 
