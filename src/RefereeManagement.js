@@ -5,6 +5,7 @@ import Teams from "./Teams";
 import Profile from "./Profile";
 import Settings from "./Settings";
 import LoginPage from "./LoginPage";
+import './App.css'; //add
 
 const RefereeManagement = () => {
     const [activeTab, setActiveTab] = useState("dashboard");
@@ -188,7 +189,7 @@ const RefereeManagement = () => {
                             key={item}
                             className={`py-2 px-4 ${
                                 activeTab === item.toLowerCase()
-                                    ? "underline"
+                                    ? "currentActive"
                                     : ""
                             }`}
                             onClick={() => setActiveTab(item.toLowerCase())}
