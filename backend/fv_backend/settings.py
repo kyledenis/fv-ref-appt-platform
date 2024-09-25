@@ -78,10 +78,17 @@ WSGI_APPLICATION = "fv_backend.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    'default': {
+        'ENGINE': 'mssql',
+        'NAME': 'AFL Victoria',
+        'USER': 'aflvic',
+        'PASSWORD': 'Nga123456@',
+        'HOST': 'afl-victoria-sql.database.windows.net',
+        'PORT': '1433',
+        'OPTIONS': {
+            'driver': 'ODBC Driver 17 for SQL Server',
+        },
+    },
 }
 
 
@@ -114,6 +121,8 @@ REST_FRAMEWORK = {
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
+
+
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
@@ -134,3 +143,6 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOW_ALL_ORIGINS = True  # For development only
+
+#API for map
+GOOGLE_API_KEY = 'AIzaSyCjanLMnwAL_fC1u0atPH8zPIp6GGtQB6E'
