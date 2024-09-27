@@ -4,13 +4,13 @@ import Calendar from "./Calendar";
 import Teams from "./Teams";
 import Profile from "./Profile";
 import Settings from "./Settings";
+import Venue from "./Venue";  // Import Venue component
 import LoginPage from "./LoginPage";
 
 const RefereeManagement = () => {
     const [activeTab, setActiveTab] = useState("dashboard");
     const [selectedDate, setSelectedDate] = useState(null);
     const [currentDate, setCurrentDate] = useState(new Date());
-    // yyyy-mm-dd
     const [availableDates, setAvailableDates] = useState([
         "2024-09-07",
         "2024-09-14",
@@ -20,7 +20,6 @@ const RefereeManagement = () => {
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef(null);
 
-    // yyyy-mm-dd
     const appointments = [
         {
             id: 1,
@@ -126,6 +125,8 @@ const RefereeManagement = () => {
                 return <Profile />;
             case "settings":
                 return <Settings />;
+            case "venues":  // Add venue tab
+                return <Venue />;
             default:
                 return null;
         }
@@ -181,6 +182,7 @@ const RefereeManagement = () => {
                         "Dashboard",
                         "Calendar",
                         "Teams",
+                        "Venues",   // Add Venues to the navigation
                         "Profile",
                         "Settings",
                     ].map((item) => (

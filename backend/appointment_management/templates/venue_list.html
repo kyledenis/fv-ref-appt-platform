@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="pageholder">
+    <div class="titleholder"> 
+        
+        <div class="title">Venue List</div> 
+        
+    </div>
+
+
+    <div class="linkholder">
+        {% if mydata.count == 0 %}
+            <div> No data available </div>
+        {% else %}
+            <table id="ourtable3" class="myTable m-3">
+                <thead>
+                    <tr>
+                        <th>Venue ID</th>
+                        <th>Venue Name</th>
+                        <th>Capacity</th>
+                        <th>Location</th>
+                        <th>Geocode link</th>
+                       
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for venue in venues %}
+                    <tr>
+                        <td> {{venue.venue_id}} </td>
+                        <td> {{venue.venue_name}} </td>
+                        <td> {{venue.capacity}} </td>
+                        <td> {{venue.location}} </td>
+                        <td> <a href="{% url 'my_geocoding_view' venue.venue_id %}"> Geocode!</a> </td>
+                       
+                    </tr>
+
+                    {% endfor%}
+                </tbody>
+
+                
+            </table>
+        {% endif %}
+     </div>
+</div>
+
+
+{% endblock %}

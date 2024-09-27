@@ -1,122 +1,20 @@
+# This is an auto-generated Django model module.
+# You'll have to do the following manually to clean this up:
+#   * Rearrange models' order
+#   * Make sure each model has one field with primary_key=True
+#   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
+#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
+# Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
-
-# Create your models here.
-# class Appointment(models.Model):
-#     type = models.CharField(max_length=100)
-#     status = models.CharField(max_length=100)
-#     date = models.DateField()
-#     time = models.TimeField()
-#     venue = models.CharField(max_length=200)
-
-## Sorry for commenting this out, this Appointment class was missing attributes and the referee foreign key that are listed on the ERD :c
-    
-
-class Referee(models.Model):
-    referee_ID:int = models.AutoField(primary_key=True)
-    name:str = models.CharField(max_length=100)
-    age:int = models.IntegerField()
-    location:str = models.CharField(max_length=100)
-    email:str = models.CharField(max_length=50)
-    phone_number:int = models.IntegerField()
-    post_code:int = models.SmallIntegerField() ## May need this for automatic ref-to-game assignment algorithm. 
-    experience:int = models.SmallIntegerField(default=00)
-
-    ref_official:str = "Official"
-    ref_trainee:str = "Trainee"
-    ref_types = [
-        (ref_trainee, "trainee"),
-        (ref_official, "official"),
-    ]
-
-    referee_type:str = models.CharField(
-        choices=ref_types,
-        default=ref_official,
-        max_length=10)
-    
-    
-    #> Body of code to enable qualification levels 1 to 4 to be entered. 
-    level_1:int = 1
-    level_2:int = 2
-    level_3:int = 3
-    level_4:int = 4
-    qual_Levels = [
-        (level_1, "Level 1"),
-        (level_2, "Level 2"),
-        (level_3, "Level 3"),
-        (level_4, "Level 4")
-    ]
-    qualification_level:int = models.SmallIntegerField(
-        choices=qual_Levels, ## Implements dropdown menu with structure qual_levels as options, this param connects it to qual_levels
-        default=level_1,
-    )
-    
-    def __str__(self):
-        return(f"{self.referee_ID} {self.legal_name} {self.age} {self.email} {self.phone_number} {self.gender} {self.address} {self.suburb} {self.post_code} {self.organisation} {self.season}")
-    
-
-class Venue(models.Model):
-    venue_ID:int = models.AutoField(primary_key=True)
-    venue_name:str = models.CharField(max_length=50)
-    location:str = models.CharField(max_length=100)
-    capacity:int = models.SmallIntegerField()
-    post_code:int = models.SmallIntegerField()
-
-    def __str__(self):
-        return(f"{self.venue_ID} {self.venue_name} {self.location} {self.capacity} {self.post_code}")
-
-
-class Club(models.Model):
-    club_ID:int = models.AutoField(primary_key=True)
-    home_venue_ID:int = models.ForeignKey(Venue, on_delete=models.SET_NULL, null=True)
-    club_name:str = models.CharField(max_length=100)
-    contact_name:str = models.CharField(max_length=100)
-    contact_phone_number:int = models.SmallIntegerField()
-
-    def __str__(self):
-        return(f"{self.club_ID} {self.home_venue_ID} {self.club_name} {self.contact_name} {self.contact_phone_number}")
-
-
-class Match(models.Model):
-    match_ID:int = models.AutoField(primary_key=True)
-    referee_ID:int = models.ForeignKey(Referee, on_delete=models.SET_NULL, null=True)
-    home_club_ID:int = models.ForeignKey(Club, on_delete=models.SET_NULL, null=True, related_name="home_club")
-    away_club_ID:int = models.ForeignKey(Club, on_delete=models.SET_NULL, null=True, related_name="away_club")
-    ## re: related_matches parameter, its needed by Django to seperate 
-    ## the two foreign Keys that point to Club table
-    venue_ID:int = models.ForeignKey(Venue, on_delete=models.SET_NULL, null=True)
-    age_group:str = models.CharField(max_length=30) ## Establish age groups and change to structure like qualification_level
-    level:str = models.CharField(max_length=30) ## Establish levels and change to structure
-
-    def __str__(self):
-        return(f"{self.match_ID} {self.referee_ID} {self.home_club_ID} {self.away_club_ID} {self.venue_ID} {self.age_group} {self.level}")
 
 
 class Appointment(models.Model):
-    appointment_ID:int = models.AutoField(default = 0, primary_key=True)
-    referee_ID:int = models.ForeignKey(Referee, on_delete=models.CASCADE)
-    venue_ID:int = models.ForeignKey(Venue, on_delete=models.CASCADE)
-    match_ID:int = models.ForeignKey(Match, on_delete=models.CASCADE) 
-    club_ID:int = models.ForeignKey(Club, on_delete=models.CASCADE)
-    # distance:int = models.SmallIntegerField() ## documentation notes (derived value), ask Martin what this means. 
-    within_range:bool = models.BooleanField(default=True)
+    appointment_id = models.CharField(primary_key=True, max_length=50)
+    referee = models.ForeignKey('Referee', models.DO_NOTHING)
+    venue = models.ForeignKey('Venue', models.DO_NOTHING)
+    match = models.ForeignKey('Match', models.DO_NOTHING)
+    distance = models.FloatField()
     appointment_date = models.DateField()
-
-
-## This is commented out as the postcode method of assessing referee distance to matches may not
-## work as Victorian postcode convention means this suburbs with similar postcodes could still be 
-## far away from eachother. Eg. Ballarat 3350 and Maryborough 3363 being 70km apart. 
-
-    # def suitable_range_check(self): 
-
-    #     x = self.referee.post_code
-    #     y = self.match.post_code
-
-    #     if x - y <= 15 or y - x <= 15: ## Try by 10, 15 may be too far (Ballarat and Maryborough example)
-    #         within_range = True
-    #     else:
-    #         within_range = False
-    #     print(f"Range check executed. Result for {self.referee_ID} is f{within_range}")
-   
     upcoming:str = "upcoming"
     ongoing:str = "ongoing"
     complete:str = "complete"
@@ -133,88 +31,263 @@ class Appointment(models.Model):
         default=ongoing) 
     
 
-    def __str__(self):
-        return(f"{self.appointment_ID} {self.referee_ID} {self.venue_ID} {self.match_ID} {self.within_range} {self.appointment_date} {self.status}")
+    class Meta:
+        managed = False
+        db_table = 'Appointment'
+
+
+class Availability(models.Model):
+    referee = models.OneToOneField('Referee', models.DO_NOTHING, primary_key=True)  # The composite primary key (referee_id, Date, start_time) found, that is not supported. The first column is selected.
+    date = models.DateField(db_column='Date')  # Field name made lowercase.
+    start_time = models.TimeField()
+    duration = models.IntegerField(db_column='Duration')  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'Availability'
+        unique_together = (('referee', 'date', 'start_time'),)
+
+
+class Club(models.Model):
+    club_id = models.CharField(db_column='club_ID', primary_key=True, max_length=50)  # Field name made lowercase.
+    club_name = models.CharField(max_length=50)
+    home_venue = models.ForeignKey('Venue', models.DO_NOTHING, db_column='home_venue_ID')  # Field name made lowercase.
+    contact_name = models.CharField(max_length=50)
+    contact_phone_number = models.CharField(max_length=50)
+
+    class Meta:
+        managed = False
+        db_table = 'Club'
+
+
+class Match(models.Model):
+    match_id = models.CharField(db_column='match_ID', primary_key=True, max_length=50)  # Field name made lowercase.
+    referee = models.ForeignKey('Referee', models.DO_NOTHING, db_column='referee_ID')  # Field name made lowercase.
+    home_club = models.ForeignKey(Club, models.DO_NOTHING)
+    away_club = models.ForeignKey(Club, models.DO_NOTHING, related_name='match_away_club_set')
+    venue = models.ForeignKey('Venue', models.DO_NOTHING, db_column='venue_ID')  # Field name made lowercase.
+    match_date = models.DateField()
+    level = models.CharField(max_length=50) ##Implement structures so age group can be designated
+
+    class Meta:
+        managed = False
+        db_table = 'Match'
+
 
 class Notification(models.Model):
-    notification_ID:int = models.AutoField(primary_key=True)
-    referee_ID:int = models.ForeignKey(Referee, on_delete=models.SET_NULL, null=True) 
-    appointment_ID:int = models.ForeignKey(Appointment, on_delete=models.SET_NULL, null=True) 
-    match_ID:int = models.ForeignKey(Match, on_delete=models.SET_NULL, null=True)
-
-    type_1:str = "confirm"
-    type_2:str = "cancel"
-    types_of_notification = [
-        (type_1, "Confirm Appointment"),
-        (type_2, "Cancel Appointment"),
-    ]
-
-    notification_type:str = models.CharField(
-        max_length=20,
-        choices=types_of_notification,
-        default=type_1,
-        )
-    
+    notification_id = models.CharField(primary_key=True, max_length=50)
+    referee = models.ForeignKey('Referee', models.DO_NOTHING, db_column='referee_ID')  # Field name made lowercase.
+    match = models.ForeignKey(Match, models.DO_NOTHING, db_column='match_ID')  # Field name made lowercase.
+    notification_type = models.CharField(max_length=6)
     date = models.DateField()
 
-    def __str__(self):
-        return(f"{self.notification_ID} {self.referee_ID} {self.appointment_ID} {self.appointment_ID} {self.match_ID} {self.notification_type} {self.date}")
-    
+    class Meta:
+        managed = False
+        db_table = 'Notification'
+
 
 class Preference(models.Model):
-    referee_ID:int = models.ForeignKey(Referee, on_delete=models.CASCADE)
-    venue_ID:int = models.ForeignKey(Venue, on_delete=models.SET_NULL, null=True)
-    date = models.DateField()
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    referee = models.ForeignKey('Referee', models.DO_NOTHING, db_column='referee_ID', primary_key=True)  # Field name made lowercase.
+    venue = models.ForeignKey('Venue', models.DO_NOTHING, db_column='venue_ID')  # Field name made lowercase.
 
-    def __str__(self):
-        return (f"{self.referee_ID} {self.venue_ID} {self.date} {self.start_time} {self.end_time}")
+    class Meta:
+        managed = False
+        db_table = 'Preference'
 
-## This may have to be re-done to enable specifying which hours per day referees are available. 
-class Availability(models.Model): 
-    referee_ID:int = models.ForeignKey(Referee, on_delete=models.CASCADE)
-    date = models.DateField()
-    start_time = models.TimeField()
-    end_time = models.TimeField()
-    days_of_week = [
-        ("monday", "Monday"),
-        ("tuesday", "Tuesday"),
-        ("wednesday", "Wednesday"),
-        ("thursday", "Thursday"),
-        ("friday", "Friday"),
-        ("saturday", "Saturday"),
-        ("sunday", "Sunday"),
+
+class Referee(models.Model):
+    referee_id = models.CharField(primary_key=True, max_length=50)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    age = models.IntegerField()
+    location = models.CharField(max_length=50)
+    email = models.CharField(max_length=50)
+    phone_number = models.CharField(max_length=50)
+    experience_years = models.IntegerField()
+
+    level_1:str = "1"
+    level_2:str = "2"
+    level_3:str = "3"
+    level_4:str = "4"
+    trainee:str = "trainee"
+    qual_levels = [
+        (trainee, "Trainee")
+        (level_1, "Level 1"),
+        (level_2, "Level 2"),
+        (level_3, "Level 3"),
+        (level_4, "Level 4")
     ]
-
-    weekdays = models.CharField(
-        max_length = 10, 
-        choices = days_of_week,
-        default = "Sunday")
     
-    def __str__(self):
-        return (f"{self.referee_ID} {self.date} {self.start_time} {self.end_time} {self.weekday}")
+    level = models.CharField(
+        max_length=1,
+        choices=qual_levels,
+        default=level_1,
+    )
+    
 
+    class Meta:
+        managed = False
+        db_table = 'Referee'
 
 
 class Relative(models.Model):
-    referee_ID:int = models.ForeignKey(Referee, on_delete=models.CASCADE)
-    club_ID:int = models.ForeignKey(Club, on_delete=models.SET_NULL, null=True)
-    relative_name:str = models.CharField(max_length=100)
-    relative_age:int = models.SmallIntegerField()
+    referee = models.ForeignKey(Referee, models.DO_NOTHING, db_column='referee_ID', primary_key=True)  # Field name made lowercase.
+    club = models.ForeignKey(Club, models.DO_NOTHING, db_column='club_ID')  # Field name made lowercase.
+    relative_name = models.CharField(max_length=50)
+    relationship = models.CharField(max_length=50)
+    age = models.IntegerField()
 
-    def __str__(self):
-        return (f"{self.referee_ID} {self.club_ID} {self.relative_name} {self.relative_age}")
+    class Meta:
+        managed = False
+        db_table = 'Relative'
 
-## TODO:
-    # Finish implementing models as per Martin's updated ERD [COMPLETED]
-    # Implement structures for elements which require options to select from (where necessary) [COMPLETED]
-        # > Review documentation or message team to where its not clear what is needed, I've marked a few elements which will need it [COMPLETED]
-    # Identify requirements of forms per model [COMPLETED]
-    # Implement forms per model where necessary [COMPLETED]
-    # Define __str__() method for models [COMPLETED]
-    # Allow for referees to specify availability per individual day
 
-    
-    
+class Venue(models.Model):
+    venue_id = models.CharField(db_column='venue_ID', primary_key=True, max_length=50)  # Field name made lowercase.
+    venue_name = models.CharField(max_length=50)
+    capacity = models.IntegerField()
+    location = models.CharField(max_length=50)
 
+    class Meta:
+        managed = False
+        db_table = 'Venue'
+
+
+class AppointmentManagementAppointment(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    type = models.CharField(max_length=100)
+    status = models.CharField(max_length=100)
+    date = models.DateField()
+    time = models.TimeField()
+    venue = models.CharField(max_length=200)
+
+    class Meta:
+        managed = False
+        db_table = 'appointment_management_appointment'
+
+
+class AuthGroup(models.Model):
+    name = models.CharField(unique=True, max_length=150)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_group'
+
+
+class AuthGroupPermissions(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    group = models.ForeignKey(AuthGroup, models.DO_NOTHING)
+    permission = models.ForeignKey('AuthPermission', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_group_permissions'
+        unique_together = (('group', 'permission'),)
+
+
+class AuthPermission(models.Model):
+    name = models.CharField(max_length=255)
+    content_type = models.ForeignKey('DjangoContentType', models.DO_NOTHING)
+    codename = models.CharField(max_length=100)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_permission'
+        unique_together = (('content_type', 'codename'),)
+
+
+class AuthUser(models.Model):
+    password = models.CharField(max_length=128)
+    last_login = models.DateTimeField(blank=True, null=True)
+    is_superuser = models.BooleanField()
+    username = models.CharField(unique=True, max_length=150)
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    email = models.CharField(max_length=254)
+    is_staff = models.BooleanField()
+    is_active = models.BooleanField()
+    date_joined = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'auth_user'
+
+
+class AuthUserGroups(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    user = models.ForeignKey(AuthUser, models.DO_NOTHING)
+    group = models.ForeignKey(AuthGroup, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_user_groups'
+        unique_together = (('user', 'group'),)
+
+
+class AuthUserUserPermissions(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    user = models.ForeignKey(AuthUser, models.DO_NOTHING)
+    permission = models.ForeignKey(AuthPermission, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_user_user_permissions'
+        unique_together = (('user', 'permission'),)
+
+
+class DjangoAdminLog(models.Model):
+    action_time = models.DateTimeField()
+    object_id = models.TextField(blank=True, null=True)
+    object_repr = models.CharField(max_length=200)
+    action_flag = models.SmallIntegerField()
+    change_message = models.TextField()
+    content_type = models.ForeignKey('DjangoContentType', models.DO_NOTHING, blank=True, null=True)
+    user = models.ForeignKey(AuthUser, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'django_admin_log'
+
+
+class DjangoContentType(models.Model):
+    app_label = models.CharField(max_length=100)
+    model = models.CharField(max_length=100)
+
+    class Meta:
+        managed = False
+        db_table = 'django_content_type'
+        unique_together = (('app_label', 'model'),)
+
+
+class DjangoMigrations(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    app = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    applied = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'django_migrations'
+
+
+class DjangoSession(models.Model):
+    session_key = models.CharField(primary_key=True, max_length=40)
+    session_data = models.TextField()
+    expire_date = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'django_session'
+
+
+class Sysdiagrams(models.Model):
+    name = models.CharField(max_length=128)
+    principal_id = models.IntegerField()
+    diagram_id = models.AutoField(primary_key=True)
+    version = models.IntegerField(blank=True, null=True)
+    definition = models.BinaryField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'sysdiagrams'
+        unique_together = (('principal_id', 'name'),)

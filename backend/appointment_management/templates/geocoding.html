@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="pageholder">
+    <div class="titleholder"> 
+        
+        <div class="title"> Geocoding template for {{location.venue_name}} </div> 
+        
+    </div>
+
+
+    <div class="linkholder">
+            <table id="ourtable3" class="myTable m-3">
+                <thead>
+                    <tr>
+                        <th>Venue ID</th>
+                        <th>Venue Name</th>
+                        <th>Capacity</th>
+                        <th>Location</th>  
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td> {{location.venue_id}} </td>
+                        <td> {{location.venue_name}} </td>
+                        <td> {{location.capacity}} </td>
+                        <td> {{location.location}} </td>
+                    </tr>
+
+                </tbody>
+
+                
+            </table>
+     </div>
+
+    
+
+</div>
+
+{% endblock %}
