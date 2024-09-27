@@ -146,3 +146,7 @@ CORS_ALLOW_ALL_ORIGINS = True  # For development only
 
 #API for map
 GOOGLE_API_KEY = 'AIzaSyCjanLMnwAL_fC1u0atPH8zPIp6GGtQB6E'
+
+VONAGE_API_KEY = '69dda339'
+VONAGE_API_SECRET = 'aJS7mpdm3LPTOLOW'
+VONAGE_BRAND_NAME = 'Football Victoria'
