@@ -22,4 +22,5 @@ router.register(r'appointmentmanageappointment', AppointmentManagementAppointmen
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+
 ]

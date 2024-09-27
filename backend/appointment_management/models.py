@@ -111,7 +111,11 @@ class Referee(models.Model):
     level_4:str = "4"
     trainee:str = "trainee"
     qual_levels = [
+<<<<<<< HEAD
         (trainee, "Trainee"),
+=======
+        (trainee, "Trainee")
+>>>>>>> e2d45a48115e7be4075ae660b8f612144fdeeef6
         (level_1, "Level 1"),
         (level_2, "Level 2"),
         (level_3, "Level 3"),
@@ -290,4 +294,8 @@ class Sysdiagrams(models.Model):
     class Meta:
         managed = False
         db_table = 'sysdiagrams'
+<<<<<<< HEAD
         unique_together = (('principal_id', 'name'),)
+=======
+        unique_together = (('principal_id', 'name'),)
+>>>>>>> e2d45a48115e7be4075ae660b8f612144fdeeef6

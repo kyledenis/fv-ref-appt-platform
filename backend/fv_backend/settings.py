@@ -145,8 +145,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOW_ALL_ORIGINS = True  # For development only
 
 #API for map
+<<<<<<< HEAD
 GOOGLE_API_KEY = 'AIzaSyCjanLMnwAL_fC1u0atPH8zPIp6GGtQB6E'
 
 VONAGE_API_KEY = '69dda339'
 VONAGE_API_SECRET = 'aJS7mpdm3LPTOLOW'
 VONAGE_BRAND_NAME = 'Football Victoria'
+=======
+GOOGLE_API_KEY = 'AIzaSyCjanLMnwAL_fC1u0atPH8zPIp6GGtQB6E'
+>>>>>>> e2d45a48115e7be4075ae660b8f612144fdeeef6

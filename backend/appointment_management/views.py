@@ -7,7 +7,10 @@ from django.conf import settings
 from .models import *
 from .serializers import *
 from datetime import date, timezone
+<<<<<<< HEAD
 from .sms_client import send_sms
+=======
+>>>>>>> e2d45a48115e7be4075ae660b8f612144fdeeef6
 
 # Create your views here.
 
@@ -18,6 +21,10 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     #List all appointments (GET /appointments/)
     def list(self, request):
         queryset = self.get_queryset()
+<<<<<<< HEAD
+=======
+
+>>>>>>> e2d45a48115e7be4075ae660b8f612144fdeeef6
         ## This code checks appointment.appointment_date for all appointment instances
         ## and switches "ongoing" and "upcoming" to "complete" on that instance if the
         ## appointment_date field is before today (signifying the appointment is over)
@@ -33,8 +40,11 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         serializer = AppointmentSerializer(queryset, many = True)
         return Response(serializer.data, status= status.HTTP_200_OK)
     
+<<<<<<< HEAD
     
     
+=======
+>>>>>>> e2d45a48115e7be4075ae660b8f612144fdeeef6
 
 
     #Retrive a specific appointment (GET /appointments/ {id})
@@ -245,9 +255,13 @@ class NotificationViewSet(viewsets.ModelViewSet):
     def create(self, request):
         serializer = NotificationSerializer(data=request.data)
         if serializer.is_valid():
+<<<<<<< HEAD
             instance = serializer.save()
             primary_key = instance.pk
             self.send_sms(primary_key)
+=======
+            serializer.save()
+>>>>>>> e2d45a48115e7be4075ae660b8f612144fdeeef6
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -509,6 +523,7 @@ class DjangoSessionViewSet(viewsets.ModelViewSet):
 
 class SysdiagramsViewSet(viewsets.ModelViewSet):
     queryset = Sysdiagrams.objects.all()
+<<<<<<< HEAD
     serializer_class = SysdiagramsSerializer
 
 
@@ -518,3 +533,6 @@ def notify_referees(request):
         
 
 
+=======
+    serializer_class = SysdiagramsSerializer
+>>>>>>> e2d45a48115e7be4075ae660b8f612144fdeeef6
