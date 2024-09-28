@@ -7,10 +7,7 @@ from django.conf import settings
 from .models import *
 from .serializers import *
 from datetime import date, timezone
-<<<<<<< HEAD
 from .sms_client import send_sms
-=======
->>>>>>> e2d45a48115e7be4075ae660b8f612144fdeeef6
 
 # Create your views here.
 
@@ -21,10 +18,6 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     #List all appointments (GET /appointments/)
     def list(self, request):
         queryset = self.get_queryset()
-<<<<<<< HEAD
-=======
-
->>>>>>> e2d45a48115e7be4075ae660b8f612144fdeeef6
         ## This code checks appointment.appointment_date for all appointment instances
         ## and switches "ongoing" and "upcoming" to "complete" on that instance if the
         ## appointment_date field is before today (signifying the appointment is over)
@@ -40,11 +33,8 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         serializer = AppointmentSerializer(queryset, many = True)
         return Response(serializer.data, status= status.HTTP_200_OK)
     
-<<<<<<< HEAD
     
     
-=======
->>>>>>> e2d45a48115e7be4075ae660b8f612144fdeeef6
 
 
     #Retrive a specific appointment (GET /appointments/ {id})
@@ -55,14 +45,30 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     
     ## appointmet is a typo but I'm scared to correct it incase I break the code. 
     
+
+
+
+
     #Create new appointment (POST /appointments/)
     def create(self, request):
         serializer = AppointmentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            instance = serializer.save()
+            referee = instance.referee
+            # phone_number = referee.phone_number
+            phone_number = "61492934088"
+
+            text = "Test message. "
+            self.send_sms(text, phone_number)
             return Response(serializer.data, status= status.HTTP_201_CREATED)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
+
+
+
+
+
+
     #Updata an existing appointment (PUT /appointments/{id})
     def updata(self, request, pk=None):
         appointment = get_object_or_404(self.queryset, pk=pk)
@@ -86,10 +92,6 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         appointment = get_object_or_404(self.queryset ,pk=pk)
         appointment.delete()
         return Response(status = status.HTTP_204_NO_CONTENT)
-    
-    # def appointment_list(request):
-    #     appointments = Appointment.objects.all() #########
-
 
 
     
@@ -251,20 +253,26 @@ class NotificationViewSet(viewsets.ModelViewSet):
         serializer = NotificationSerializer(notification)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+
+
+
+
+
+    
     #Create a new notification (POST /notifications/)
     def create(self, request):
         serializer = NotificationSerializer(data=request.data)
         if serializer.is_valid():
-<<<<<<< HEAD
-            instance = serializer.save()
-            primary_key = instance.pk
-            self.send_sms(primary_key)
-=======
             serializer.save()
->>>>>>> e2d45a48115e7be4075ae660b8f612144fdeeef6
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+
+
+
+
+
+
     #Update an existing notification (PUT /notifications/{id})
     def update(self, request, pk=None):
         notification = get_object_or_404(self.queryset, pk=pk)
@@ -523,16 +531,6 @@ class DjangoSessionViewSet(viewsets.ModelViewSet):
 
 class SysdiagramsViewSet(viewsets.ModelViewSet):
     queryset = Sysdiagrams.objects.all()
-<<<<<<< HEAD
     serializer_class = SysdiagramsSerializer
 
 
-## can get Referee phone_numbers using foreign key
-def notify_referees(request):
-    send_sms(settings.VONAGE_BRAND_NAME, "61492934088", "Hello world")
-        
-
-
-=======
-    serializer_class = SysdiagramsSerializer
->>>>>>> e2d45a48115e7be4075ae660b8f612144fdeeef6
