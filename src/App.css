@@ -75,18 +75,75 @@ nav button::after{
   height: 4px;
   bottom: 0;
   left:0px;
-  background-color: rgb(239, 255, 173);
+  background-color: #ffff00;
   transition: 0.3s ease-in-out;
 }
 
 nav button:hover,
 .currentActive{
-  color:rgb(234, 255, 0);
+  color:#ffff00;
   text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
   transition: 0.3s ease;
 }
 nav button:hover::after,
 .currentActive::after{
   width: 100%;
+}
+/* adding overhead blue line for title of each page */
+.title{
+  position:relative;
+}
+.title::after{
+  content:'';
+  position: absolute;
+  width: 24%;
+  height: 4px;
+  top: 0;
+  left:0px;
+  background-color: rgb(15 0 125);
+}
+
+
+/* status on information card */
+.status-Red{
+  color: red;
+}
+.status-Green{
+  color: green;
+}
+.status-Yellow{
+  color: #c7ba00;
+}
+.status-White{
+  border: ;
+}
+.bg-Red{
+  background-color: #ffd7d5;
+  border: 2px solid red;
+}
+.bg-Yellow{
+  background-color: #ffffe4;
+  border: 2px solid rgb(242, 255, 0);
+}
+.bg-Green{
+  background-color: #cfffd6;
+  border: 2px solid rgb(0, 255, 17);
+}
+.bg-White{
+  border: 2px solid rgb(167, 167, 167);
+}
+/* Information card */
+#InformationCard {
+  padding: 20px;
+  margin: 20px;
+  transition: transform 0.25s ease-in-out, opacity 0.25s ease-in-out;
+}
+
+/* Hover effects */
+#InformationCard:hover{
+  box-shadow: 0 5px 8px 2px #5c5c5c;
+  transform: scale(1.05);
+  opacity:0.9;
+  transition:0.25s ease-in-out;
 }
 

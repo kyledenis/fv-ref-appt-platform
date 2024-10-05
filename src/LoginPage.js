@@ -4,6 +4,10 @@ const LoginPage = ({ onLogin }) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
+    //create a demo tick box to Referee page
+    const [isAdmin, setIsAdmin] = useState("false");
+    
+
     const handleSubmit = (e) => {
         e.preventDefault();
         onLogin(username);
