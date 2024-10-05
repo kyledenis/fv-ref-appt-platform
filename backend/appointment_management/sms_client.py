@@ -1,8 +1,16 @@
+from urllib import request
 from django.conf import settings
-import requests
+import requests # type: ignore
 import json
+from rest_framework.response import Response
+from rest_framework import status
 
-def send_sms(text, phone_numbers):
+
+
+## Investigate scheduled_time use as per documentation
+## this will help if we want to schedule texts. 
+
+def send_sms(text, phone_number):
     url = 'https://cellcast.com.au/api/v3/send-sms'
 
     headers = {
@@ -13,7 +21,7 @@ def send_sms(text, phone_numbers):
 
     payload = {
         'sms_text': text,
-        'numbers': phone_numbers ## This could be one or n phone numbers 
+        'numbers': phone_number 
     }
  
     try:
@@ -32,5 +40,14 @@ def send_sms(text, phone_numbers):
         "msg": "Something went wrong, please try again",
         "result": str(e)
     }
+
+
+
+
+
+            
+
+
+
 
 

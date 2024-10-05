@@ -22,5 +22,9 @@ router.register(r'appointmentmanageappointment', AppointmentManagementAppointmen
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+    path('api/', include("appointment_management.urls")),
+    path("sms-webhook/", SMS_Receiver.as_view(), name="sms_webhook"),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+
 
 ]

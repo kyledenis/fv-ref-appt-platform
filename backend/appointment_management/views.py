@@ -1,15 +1,26 @@
+import json
+import requests # type: ignore
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
+from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from .models import *
 from .serializers import *
 from datetime import date, timezone
 from .sms_client import send_sms
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+import random 
+import uuid
 
 # Create your views here.
+
 
 class AppointmentViewSet(viewsets.ModelViewSet):
     queryset = Appointment.objects.all()
@@ -41,10 +52,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None):
         appointmet = get_object_or_404(self.queryset, pk=pk)
         serializer = AppointmentSerializer(appointmet)
-        return Response(serializer.data, status= status.HTTP_200_OK)
-    
-    ## appointmet is a typo but I'm scared to correct it incase I break the code. 
-    
+        return Response(serializer.data, status= status.HTTP_200_OK)    
 
 
 
@@ -53,13 +61,26 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     def create(self, request):
         serializer = AppointmentSerializer(data=request.data)
         if serializer.is_valid():
-            instance = serializer.save()
-            referee = instance.referee
-            # phone_number = referee.phone_number
-            phone_number = "61492934088"
+            appointment = serializer.save() ## creates instance of appointment model
+            date = appointment.appointment_date # extracts date from appointment instance
+            # time = appointment.time ## Ask Janie to implement this on Appointment in models.py
 
-            text = "Test message. "
-            self.send_sms(text, phone_number)
+
+            referee = appointment.referee ## extracts referee corresponding to appointment.referee foreign key
+            r_a_t = referee_appointment_tracker(referee)
+            first_name = referee.first_name ## extracts referee's first name
+            phone_number = referee.phone_number ## extracts referee's phone number
+
+            match = appointment.match ## extracts match corresponding to appointment.match_id foreign key
+            level = match.level ## extracts level (age division) of match
+
+            venue = match.venue ## extracts venue corresponding to venue_id foreign key.
+            venue_name = venue.venue_name ## extracts venue name
+            venue_location = venue.location ## extracts venue location
+
+            text = f"Hi {first_name}, there's an upcoming match on the {date}. It's a {level} division match taking place at {venue_name}, {venue_location}. Are you interested in overseeing this match?\n\nIf so, respond YES, otherwise please respond NO. Thanks {first_name}. \n\n  - Football Victoria."
+            send_sms(text, phone_number) 
+            r_a_t.add_notification(appointment)
             return Response(serializer.data, status= status.HTTP_201_CREATED)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
     
@@ -91,9 +112,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     def destroy(self, request, pk=None):
         appointment = get_object_or_404(self.queryset ,pk=pk)
         appointment.delete()
-        return Response(status = status.HTTP_204_NO_CONTENT)
-
-
+        return Response(status = status.HTTP_204_NO_CONTENT)        
     
 class AvailabilityViewSet(viewsets.ModelViewSet):
     queryset = Availability.objects.all()
@@ -489,6 +508,8 @@ class AppointmentManagementAppointmentViewSet(viewsets.ModelViewSet):
         appointment_manage_appointment = get_object_or_404(self.queryset, pk=pk)
         appointment_manage_appointment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+# 
 class AuthGroupViewSet(viewsets.ModelViewSet):
     queryset = AuthGroup.objects.all()
     serializer_class = AuthGroupSerializer
@@ -532,5 +553,132 @@ class DjangoSessionViewSet(viewsets.ModelViewSet):
 class SysdiagramsViewSet(viewsets.ModelViewSet):
     queryset = Sysdiagrams.objects.all()
     serializer_class = SysdiagramsSerializer
+
+
+
+# class text_message:
+#     message_list = []
+
+#     def __init__(self, first_name, phone_number, level, venue_name, venue_location):
+#         self.first_name = first_name
+#         self.phone_number = phone_number
+#         self.level = level
+#         self.venue_name = venue_name
+#         self.venue_location = venue_location
+#         self.message_id = str(uuid.uuid4())
+#         ## gives message unique ID so it can be identified when recipient responds
+
+
+#     @classmethod
+#     def add_to_list(message_to_add):
+#         text_message.message_list.append(message_to_add)
+
+
+    ## Tony's suggestion: Only send 1 appointment notifcation to the referee
+    ## if they have more than 1 appointment notification, send message
+    ## "You have multiple appointment invitations, please access website to manage."
+# 
+    ## Use referee_appointment_tracker to track how many appointment messages referees 
+    ## takes referee ID and instances of appointment notification
+    ## stores notification instances on appointment_notification[] list
+    ## this will be used to count notifications referee has been sent
+    ## if referee has been sent 1 and is sent any more than 1:
+        ## Referee is sent "You have multiple pending notifications, please login to website to manage"
+
+class referee_appointment_tracker:
+    referee_appointments_list = []
+
+    def __init__(self, referee):
+        self.referee = referee
+        self.appointment_list = []
+        self.total_pending_appointments = len(self.appointment_list)
+
+
+    def add_notification(self, appointment):
+        self.appointment_list.append(appointment)
+
+class appointment():
+    def __init__(self, appointment_ID, referee_ID, status):
+        self.appointmet_ID = appointment_ID
+        self.referee_ID = referee_ID
+        self.status = status
+
+    def get_appointment_ID(self):
+        return self.appointmet_ID
+    
+    def get_referee_ID(self):
+        return self.referee_ID
+    
+    def get_status(self):
+        return self.status
+    
+    def set_status(self, new_status):
+        self.status = new_status
+
+## In this approach, when an appointment text message is sent out: 
+## 1: an instance of appointment is declared, variables passed to it
+## 2: an instances of referee_appointment_tracker is declared, variables passed to it
+## 3: appointment is passed to referee_appointment tracker's list to store that referees appointment
+
+
+
+## if message == "YES": message_log[0].status = yes 
+## in code that texts referee about appointment,
+## need to use appointment_ID in code that accepts
+## when referee responds YES or NO
+## could compare Sender Referee ID with referee_appointment_tracker Referee ID
+
+
+
+
+
+
+
+
+## maybe use rand int to connect the message sent
+## to the message received 
+
+class SMS_Receiver(APIView):
+    def post(self, request):
+        sms_data = request.data ## instantiates sms_data as being equal to the contents of request.data
+        me = "61492934088"
+
+        for sms in sms_data: ## iterates through sms_data (which is always a list) and passes them to deconstruct_sms()
+            self.deconstruct_sms(sms)
+
+        return Response(status=status.HTTP_200_OK)
+
+    def deconstruct_sms(self, sms):
+        sender = sms.get('from') ## extracts the sender's phone number
+        message = sms.get('body') ## extracts the text from the text message
+
+
+        send_sms(message, sender)
+
+        
+
+        ## from here, write tailored methods which will perform
+        ## certain functionality based on what the referee texts
+        ## the system
+
+
+
+
+
+
+
+
+        # ## Fetches all referees where referee.phone_number == sender
+        # queryset = Appointment.objects.filter(referee__phone_number=sender)
+
+        # referee = queryset
+
+
+                
+
+
+
+
+
 
 
