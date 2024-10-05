@@ -109,13 +109,13 @@ nav button:hover::after,
   color: red;
 }
 .status-Green{
-  color: green;
+  color: #008000;
 }
 .status-Yellow{
   color: #c7ba00;
 }
 .status-White{
-  border: ;
+  border: #cacaca ;
 }
 .bg-Red{
   background-color: #ffd7d5;
