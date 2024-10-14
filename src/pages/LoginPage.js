@@ -1,12 +1,48 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAppContext } from "../contexts/AppContext";
 
-const LoginPage = ({ onLogin }) => {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
+const LoginPage = () => {
+    const [credentials, setCredentials] = useState({
+        username: "",
+        password: "",
+    });
+    const [error, setError] = useState("");
+    const { login } = useAppContext();
+    const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setCredentials({ ...credentials, [name]: value });
+    };
+
+    // ?: Temporary mock login.
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        onLogin(username);
+        setError("");
+
+        try {
+            // TODO: Replace with actual login logic via API.
+            if (
+                credentials.username === "admin" &&
+                credentials.password === "password"
+            ) {
+                const mockUserData = {
+                    id: 1,
+                    username: "admin",
+                    firstName: "Admin",
+                    lastName: "User",
+                    email: "admin@example.com",
+                };
+                await login(mockUserData);
+                navigate("/");
+            } else {
+                setError("Invalid username or password");
+            }
+        } catch (error) {
+            setError("An error occurred during login. Please try again.");
+            console.error("Login error:", error);
+        }
     };
 
     return (
@@ -36,8 +72,8 @@ const LoginPage = ({ onLogin }) => {
                                 required
                                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                                 placeholder="Username"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                value={credentials.username}
+                                onChange={handleChange}
                             />
                         </div>
                         <div>
@@ -51,11 +87,17 @@ const LoginPage = ({ onLogin }) => {
                                 required
                                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                                 placeholder="Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                value={credentials.password}
+                                onChange={handleChange}
                             />
                         </div>
                     </div>
+
+                    {error && (
+                        <p className="text-red-500 text-sm text-center">
+                            {error}
+                        </p>
+                    )}
 
                     <div>
                         <button

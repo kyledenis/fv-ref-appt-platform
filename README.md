@@ -1,8 +1,17 @@
-# fv-appt-platform
+# Football Victoria Referee Management Platform
 
-The FV Referees department would like to provide a better experience for referees when appointing to football matches by improving their semi-automatic process. Appointment requires matching location, experience, maturity, and appropriate age to the match. It also requires accuracy, timing, and flexibility. The main goal is to fix the issue of mass declines in age groups of U12, 13, and 14’s fixtures which can impact the growth of football in Victoria. Having this platform run with the below requirements will help to ensure higher acceptance of appointments. This platform is to compliment the current use of Schedula which is the Referees Appointment System that does not have a graphical visualization but stores the Club's and Referees' information and history.
+This project is a React-based web application for managing referee appointments and availability for Football Victoria. The FV Referees department aims to provide a better experience for referees when appointing to football matches by improving their semi-automatic process. This platform complements the current use of Schedula, adding graphical visualization to the existing Referees Appointment System.
 
-## Build front-end
+## Project Overview
+
+The main goals of this platform are:
+
+- Match referees to appointments based on location, experience, maturity, and appropriate age
+- Improve accuracy, timing, and flexibility in the appointment process
+- Address the issue of mass declines in age groups of U12, 13, and 14's fixtures
+- Ensure higher acceptance of appointments
+
+## Frontend Setup
 
 1. Clone the repository and navigate to the root directory:
 
@@ -13,21 +22,29 @@ The FV Referees department would like to provide a better experience for referee
 
 2. Install dependencies:
 
-    ```bash
+    ```npm
     npm install
     ```
 
-3. Start the development server:
+3. Create an `.env` file in the root directory and add the necessary environment variables. (See `.env.template` for reference):
 
-    ```bash
-    npm start
+   ```plaintext
+   REACT_APP_GOOGLE_MAPS_API_KEY=your_actual_api_key_here
+   ```
+
+4. Start the development server:
+
+    ```npm
+    npm run dev
     ```
 
-4. Open `http://localhost:3000` to view the webapp in the browser.
+    > Note:
+    > - Keep the frontend and backend servers running in separate terminals.
+    > - The backend server must be running for the frontend to work properly.
 
-> Keep terminal open to host front-end.
+5. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-## Build back-end
+## Backend Setup
 
 1. In a separate terminal from the project's root directory, navigate to the `backend` directory:
 
@@ -37,44 +54,44 @@ The FV Referees department would like to provide a better experience for referee
 
 2. Create a virtual environment:
 
-    ```bash
+    ```python3
     python3 -m venv venv
     ```
 
 3. Activate the virtual environment:
     - On Windows:
 
-    ```bash
-    venv\Scripts\activate
-    ```
+        ```cmd
+        venv\Scripts\activate
+        ```
 
     - On macOS and Linux:
 
-    ```bash
-    source venv/bin/activate
-    ```
+        ```bash
+        source venv/bin/activate
+        ```
 
 4. Install the required packages:
 
-    ```bash
+    ```pip
     pip install -r requirements.txt
     ```
 
 5. Set up your database:
 
-    ```bash
+    ```python3
     python3 manage.py migrate
     ```
 
 6. Create a superuser for admin access (optional):
 
-    ```bash
+    ```python3
     python3 manage.py createsuperuser
     ```
 
 7. Run the development server:
 
-    ```bash
+    ```python3
     python3 manage.py runserver
     ```
 
@@ -161,8 +178,18 @@ models.py file at the bottom right of VSCode screen: UTF-8 and UTF-16 may be con
 
 ### Available Scripts
 
-In the project directory, you can run:
-
-- `npm start`: Runs the app in development mode
+- `npm run dev`: Runs both the React app and the Express server concurrently
+- `npm start`: Runs the React app in development mode
+- `npm run server`: Runs the Express server
 - `npm test`: Launches the test runner
 - `npm run build`: Builds the app for production
+
+## Project Structure
+
+- `src/`: React application source code
+  - `components/`: Reusable UI components
+  - `pages/`: Main page components
+  - `contexts/`: React Context for state management
+  - `services/`: API service for backend communication
+  - `utils/`: Utility functions
+- `server.js`: Express server for proxying Google Maps API requests

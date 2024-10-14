@@ -1,6 +1,6 @@
 import React from "react";
 
-const TimePicker = ({ value, onChange }) => {
+const TimePicker = ({ value, onChange, className = "" }) => {
     const generateTimeOptions = () => {
         const options = [];
         for (let hour = 0; hour < 24; hour++) {
@@ -20,7 +20,7 @@ const TimePicker = ({ value, onChange }) => {
 
     return (
         <select
-            className="w-full p-2 border rounded"
+            className={`w-full p-2 border rounded ${className}`}
             value={value}
             onChange={(e) => onChange(e.target.value)}
         >
