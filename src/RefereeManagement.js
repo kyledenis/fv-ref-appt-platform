@@ -204,7 +204,7 @@ const RefereeManagement = () => {
             const loading = toast.loading("Please wait...");
             const response = await axios.post("http://localhost:8000/api/availability/", availability);
             console.log(response);
-            if (response.status == 201) {
+            if (response.status === 201) {
                 toast.update(loading, {render: "Submited Successfully", type: "success", isLoading: false, autoClose: 5000, hideProgressBar: false,
                     closeOnClick: true,
                     pauseOnHover: true,

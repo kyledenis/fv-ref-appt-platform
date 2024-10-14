@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import RefereeManagement from "./RefereeManagement";
 import GeographicalViewTest from "./components/GeographicalViewTest";
+import JimmyViewTest from "./JimmyViewTest"
 
 function App() {
     const [activeComponent, setActiveComponent] = useState("home");
@@ -11,6 +12,8 @@ function App() {
                 return <RefereeManagement />;
             case "geoView":
                 return <GeographicalViewTest />;
+            case "JMap":
+                return <JimmyViewTest />;
             default:
                 return <RefereeManagement />;
         }
@@ -39,6 +42,13 @@ function App() {
                         >
                             Geo View Test
                         </button>
+                    </li>
+                    <li>
+                        <button
+                            onClick={() => setActiveComponent("JMap")}
+                            className="text-white hover:underline">
+                                JimmyViewTest
+                            </button>
                     </li>
                 </ul>
             </nav>

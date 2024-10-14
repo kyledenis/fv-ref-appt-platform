@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { User } from "lucide-react";
 import axios from "axios"
 
-const Profile = () => {
+const Referee = () => {
 
     const [profile, setProfile] = useState({
         "referee_id": null,
@@ -25,7 +25,7 @@ const Profile = () => {
 
     const getFirstReferee = async () => {
         const firstReferee = await axios.get("http://localhost:8000/api/referee/1/");
-        if (firstReferee.status == 200) {
+        if (firstReferee.status === 200) {
             setProfile(firstReferee.data);
         }
     }
