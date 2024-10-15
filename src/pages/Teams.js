@@ -12,10 +12,10 @@ const Teams = () => {
                 {teams && teams.length > 0 ? (
                     teams.map((team) => (
                         <div
-                            key={team.id}
+                            key={team.club_id}
                             className="bg-white shadow rounded-lg p-4"
                         >
-                            <h3 className="font-semibold">{team.name}</h3>
+                            <h3 className="font-semibold">{team.club_name}</h3>
                             <p>League: {team.league}</p>
                         </div>
                     ))
