@@ -144,6 +144,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOW_ALL_ORIGINS = True  # For development only
 
-#API for map
-GOOGLE_API_KEY = 'AIzaSyCjanLMnwAL_fC1u0atPH8zPIp6GGtQB6E'
 
