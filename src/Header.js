@@ -3,7 +3,7 @@ import RefereeManagement from "./RefereeManagement";
 const Header = function({dropdownRef, setShowDropdown, showDropdown, handleLogout}){
     return(
     <>
-    <header className="bg-fvTopHeader text-white p-2">
+    <header className="bg-fvTopHeader text-white p-2 z-10">
                 <div className="container mx-auto flex justify-between items-center">
                     <h1 className="text-s font-bold">
                         Referee Management Platform
@@ -11,7 +11,7 @@ const Header = function({dropdownRef, setShowDropdown, showDropdown, handleLogou
                 </div>
             </header>
 
-            <div className="bg-fvMiddleHeader text-white p-4">
+            <div className="bg-fvMiddleHeader text-white p-4 z-10">
                 <div className="container mx-auto flex justify-between items-center">
                     <div className="flex items-center">
                         <img

@@ -139,9 +139,9 @@ const ScheduleManagement = () => {
         },
     ]
     return (
-        <div className="scrollable-container">
+        <div>
             <Header />
-            <nav className="bg-fvBottomHeader text-white">
+            <nav className="bg-fvBottomHeader text-white z-10">
                 {navTabs.map(tab => 
                 <button
                 key={tab}

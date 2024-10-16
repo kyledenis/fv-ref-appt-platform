@@ -203,7 +203,7 @@ nav button:hover::after,
   border: 2px solid rgb(167, 167, 167);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
-
+/* filter buttons */
 .universalButton{
   padding: 4px;
   border: 2px solid rgb(167, 167, 167);

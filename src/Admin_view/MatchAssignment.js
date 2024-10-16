@@ -5,7 +5,6 @@ const MatchAssignment = (props) => {
     const [statusFilter, setStatusFilter] = useState("");
     const [highlight, setHighlight] = useState(true);
     const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-
     const selectedCard = props.iCards.find(card => card.id === props.selectedMatchID);
 
     // highlight state
@@ -19,10 +18,18 @@ const MatchAssignment = (props) => {
         setShowStatusDropdown(false); // Hide dropdown after selection
     };
 
+    // return an array that contains all the satisfied cards excluding the selected card from Home tab.
     const filterRelevantCards = (statusFilter) => {
-        return props.iCards.filter(card => 
-            (statusFilter === "" || card.status.toLowerCase() === statusFilter.toLowerCase())
-        );
+        return props.iCards.filter(card => {
+            if (!selectedCard) {
+                // If no card is selected, include all cards that match the status filter
+                return statusFilter === "" || card.status.toLowerCase() === statusFilter.toLowerCase();
+            } else {
+                // If a card is selected, exclude the selected card and match the status filter
+                return card.id !== selectedCard.id && 
+                       (statusFilter === "" || card.status.toLowerCase() === statusFilter.toLowerCase());
+            }
+        });
     };
 
     const relevantCards = filterRelevantCards(statusFilter);
@@ -35,7 +42,7 @@ const MatchAssignment = (props) => {
                     className="shadow-lg rounded-xl universalButton mr-2" 
                     onClick={() => setShowStatusDropdown(!showStatusDropdown)}
                 >
-                    Status
+                    Filter by Status
                 </button>
                 {showStatusDropdown && (
                     <div className="absolute bg-white shadow-lg rounded-md mt-2 w-48 z-10">
@@ -73,7 +80,7 @@ const MatchAssignment = (props) => {
                 )}
             </div>
             <div className="grid grid-cols-2">
-                {statusFilter === "" && selectedCard && (
+                {selectedCard && (statusFilter === "" || selectedCard.status === statusFilter) && (
                     <MatchCard 
                         key={selectedCard.id}
                         {...selectedCard}
