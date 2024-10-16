@@ -40,14 +40,3 @@ def send_sms(text, phone_number):
         "msg": "Something went wrong, please try again",
         "result": str(e)
     }
-
-
-
-
-
-            
-
-
-
-
-

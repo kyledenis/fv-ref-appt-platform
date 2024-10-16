@@ -7,7 +7,6 @@ app_name = "fv_appointment_platform"
 
 
 urlpatterns = [
-    # path('incoming-sms/', views.incoming_sms, name='incoming_sms'),
 ]
 
 

@@ -1,4 +1,6 @@
+from collections import deque
 import json
+import string
 import requests # type: ignore
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -11,14 +13,15 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from .models import *
 from .serializers import *
-from datetime import date, timezone
+from datetime import date
 from .sms_client import send_sms
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 import random 
 import uuid
-
+import traceback
+import time
 # Create your views here.
 
 
@@ -29,13 +32,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     #List all appointments (GET /appointments/)
     def list(self, request):
         queryset = self.get_queryset()
-        ## This code checks appointment.appointment_date for all appointment instances
-        ## and switches "ongoing" and "upcoming" to "complete" on that instance if the
-        ## appointment_date field is before today (signifying the appointment is over)
-        ## This code is executed when list() is called. 
-
-        ## May implement this on matches if we decide it needs it. 
-        appointments = queryset
+        appointments = queryset ## switches appointment.status from "ongoing" and "upcoming" to "complete" if the appointment's date is prior to today
         for appointment in appointments:
             if appointment.appointment_date < date.today() and appointment.status != "cancelled":
                 appointment.status = "complete"
@@ -43,8 +40,6 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
         serializer = AppointmentSerializer(queryset, many = True)
         return Response(serializer.data, status= status.HTTP_200_OK)
-    
-    
     
 
 
@@ -62,31 +57,40 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         serializer = AppointmentSerializer(data=request.data)
         if serializer.is_valid():
             appointment = serializer.save() ## creates instance of appointment model
-            date = appointment.appointment_date # extracts date from appointment instance
-            # time = appointment.time ## Ask Janie to implement this on Appointment in models.py
+            appointment_id = appointment.appointment_id
 
-
+            ## Get appointment details
+            date = appointment.formatted_date # extracts date from appointment instance
             referee = appointment.referee ## extracts referee corresponding to appointment.referee foreign key
-            r_a_t = referee_appointment_tracker(referee)
+
+            ## Get referee's details
             first_name = referee.first_name ## extracts referee's first name
             phone_number = referee.phone_number ## extracts referee's phone number
 
+            ## Get match details
             match = appointment.match ## extracts match corresponding to appointment.match_id foreign key
             level = match.level ## extracts level (age division) of match
+            time = match.formatted_time
 
+
+            ## Get venue details
             venue = match.venue ## extracts venue corresponding to venue_id foreign key.
             venue_name = venue.venue_name ## extracts venue name
             venue_location = venue.location ## extracts venue location
 
-            text = f"Hi {first_name}, there's an upcoming match on the {date}. It's a {level} division match taking place at {venue_name}, {venue_location}. Are you interested in overseeing this match?\n\nIf so, respond YES, otherwise please respond NO. Thanks {first_name}. \n\n  - Football Victoria."
-            send_sms(text, phone_number) 
-            r_a_t.add_notification(appointment)
+            ## Get unique phrase so SMS_Interchange can identify messages
+            id_generator = SMS_phrase_generator()
+            phrase = id_generator.generate_phrase()
+
+            ## Add {time} to text when issue is fixed.
+            text = f"Hi {first_name}, there's an upcoming match at {time} on the {date}. It's a {level} division match at {venue_name}, {venue_location}, are you interested in overseeing this match?\n\nPlease respond YES or NO, followed by {phrase}.\n\nFor example, YES {phrase} or NO {phrase}. Thanks {first_name}. \n\n  - Football Victoria." 
+            send_sms(text, phone_number)
+            sms_to_add = SMS_Interchange(appointment_id, first_name, phone_number, phrase)
+            
+
             return Response(serializer.data, status= status.HTTP_201_CREATED)
         return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
-    
-
-
-
+   
 
 
 
@@ -383,7 +387,11 @@ class RefereeViewSet(viewsets.ModelViewSet):
     def create(self, request):
         serializer = RefereeSerializer(data = request.data)
         if serializer.is_valid():
-            serializer.save()
+            referee = serializer.save()
+            phone_number = referee.phone_number
+            name = referee.first_name
+            text = f"Hi {name}, welcome to Football Victoria! You'll receive messages from this number informing you of upcoming matches, and providing the dates, times and locations of those matches, as well as instructions on how to accept or decline them.\n\nWe look forward to working with you,\n\n - Football Victoria. "
+            send_sms(text, phone_number)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -556,129 +564,170 @@ class SysdiagramsViewSet(viewsets.ModelViewSet):
 
 
 
-# class text_message:
-#     message_list = []
+class SMS_Interchange(): ## Where SMS messages are stored, is iterated through for confirming or cancelling appointments when message is received. 
+    sms_database:list = [] 
 
-#     def __init__(self, first_name, phone_number, level, venue_name, venue_location):
-#         self.first_name = first_name
-#         self.phone_number = phone_number
-#         self.level = level
-#         self.venue_name = venue_name
-#         self.venue_location = venue_location
-#         self.message_id = str(uuid.uuid4())
-#         ## gives message unique ID so it can be identified when recipient responds
-
-
-#     @classmethod
-#     def add_to_list(message_to_add):
-#         text_message.message_list.append(message_to_add)
-
-
-    ## Tony's suggestion: Only send 1 appointment notifcation to the referee
-    ## if they have more than 1 appointment notification, send message
-    ## "You have multiple appointment invitations, please access website to manage."
-# 
-    ## Use referee_appointment_tracker to track how many appointment messages referees 
-    ## takes referee ID and instances of appointment notification
-    ## stores notification instances on appointment_notification[] list
-    ## this will be used to count notifications referee has been sent
-    ## if referee has been sent 1 and is sent any more than 1:
-        ## Referee is sent "You have multiple pending notifications, please login to website to manage"
-
-class referee_appointment_tracker:
-    referee_appointments_list = []
-
-    def __init__(self, referee):
-        self.referee = referee
-        self.appointment_list = []
-        self.total_pending_appointments = len(self.appointment_list)
-
-
-    def add_notification(self, appointment):
-        self.appointment_list.append(appointment)
-
-class appointment():
-    def __init__(self, appointment_ID, referee_ID, status):
-        self.appointmet_ID = appointment_ID
-        self.referee_ID = referee_ID
-        self.status = status
+    def __init__(self, appointment_ID, referee_name, sender, phrase): ## These values are passed to the interchange when the appointments are made. 
+        self.appointment_ID:str = appointment_ID
+        self.referee_name:str = referee_name
+        self.sender:str = sender
+        self.phrase:str = phrase
+        SMS_Interchange.clean_list()
+        SMS_Interchange.sms_database.append(self)
 
     def get_appointment_ID(self):
-        return self.appointmet_ID
+        return self.appointment_ID
+
+    def get_referee_name(self):
+        return self.referee_name
     
-    def get_referee_ID(self):
-        return self.referee_ID
+    def get_sender(self):
+        return self.sender
     
-    def get_status(self):
-        return self.status
+    def get_phrase(self):
+        return self.phrase
     
-    def set_status(self, new_status):
-        self.status = new_status
-
-## In this approach, when an appointment text message is sent out: 
-## 1: an instance of appointment is declared, variables passed to it
-## 2: an instances of referee_appointment_tracker is declared, variables passed to it
-## 3: appointment is passed to referee_appointment tracker's list to store that referees appointment
-
-
-
-## if message == "YES": message_log[0].status = yes 
-## in code that texts referee about appointment,
-## need to use appointment_ID in code that accepts
-## when referee responds YES or NO
-## could compare Sender Referee ID with referee_appointment_tracker Referee ID
+    def get_sms_database(cls):
+        return cls.sms_database
+    
+    @classmethod
+    def clean_list(cls): ## reduces sms_database[] to 150000 items if length hits 300000
+        if len(cls.sms_database) >= 300000:
+            del cls.sms_database [:150000]
 
 
-
-
-
-
-
-
-## maybe use rand int to connect the message sent
-## to the message received 
 
 class SMS_Receiver(APIView):
     def post(self, request):
-        sms_data = request.data ## instantiates sms_data as being equal to the contents of request.data
-        me = "61492934088"
+        # sms_data = request.data ## sms_data holds incoming payload (which from Cellcast is always a list)
+        # for sms in sms_data: ## iterates through sms_data and passes them to handle_sms()
+        #     self.handle_sms(sms)
+        # return Response(status=status.HTTP_200_OK) ## This is an old implementation but don't delete it. 
 
-        for sms in sms_data: ## iterates through sms_data (which is always a list) and passes them to deconstruct_sms()
-            self.deconstruct_sms(sms)
+    
+        sms_data:list = request.data
+        sms_backlog:list = []
+        sms_backlog.extend(sms_data)
 
-        return Response(status=status.HTTP_200_OK)
+        try: 
+            for _ in sms_backlog:
+                x = sms_backlog.pop(0)
+                self.handle_sms(x)
+                # time.sleep(30) ## Staggers sms handling over 30 second increments to address Ngrok bottlenecking, works but causes application to timeout.
+                if len(sms_backlog) == 0:
+                    print("All messages in sms_backlog have been popped. ")
+                else:
+                    print("Remaining messages: ", len(sms_backlog))
 
-    def deconstruct_sms(self, sms):
+            return Response({"message": "For loop completed. If not all responses were sent out, the issue is likely the database queries bottlenecking the messaging API. "}, status=status.HTTP_200_OK)
+
+        except AssertionError as e:
+            print(f"{e} AssertionError occured due to extended SMS backlog. This is fine.")
+            return Response(status=status.HTTP_418_IM_A_TEAPOT)
+
+        except Exception as e:
+            print(f"{e} Execption was caught.")
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+    def handle_sms(self, sms): ## each sms in sms_data[] list is a dictionary, so get() is used to extract it's contents
         sender = sms.get('from') ## extracts the sender's phone number
         message = sms.get('body') ## extracts the text from the text message
 
+        ## send_sms(message, sender) ## Sends sender's message back to them (for testing purposes)
+        try:
+            extracted_sms:list = self.extract_phrase(message) ## extracted_sms[] contains yes_or_no and phrase after they're split in extract_phrase()
+            if not extracted_sms:
+                text = "Sorry, it appears your message was incorrectly formatted. Please try again.  "
+                send_sms(text, sender)
+                raise ValueError()
+       
+            yes_or_no = extracted_sms[0]
+            phrase = extracted_sms[1]
 
-        send_sms(message, sender)
+        except ValueError as e:
+            print(f"Message was missing YES/NO response or phrase OR was >2 tokens long. {e}")
+            
+        ## text = f"Referee response: {yes_or_no} {phrase}" ## Sends sender's message back to them, used for texting. 
+        ## send_sms(text, sender)
+        try: 
+            for sms in SMS_Interchange.sms_database:
+                if sms.get_phrase() == phrase.strip().upper() and sender == sms.get_sender():
+                    # send_sms("phrase and sender check works", "61492934088")
+                    ref_name = sms.get_referee_name() ## Gets referee_name from sms
+                    appointment = sms.get_appointment_ID() ## Gets appointment_ID from sms
+                    appointment_instance = Appointment.objects.get(appointment_id=appointment) ## Query retreives instance of appointment from database where it's appointment_id field == sms.get_appointment_ID()
 
+                    if phrase == None:
+                        raise UnboundLocalError()
+
+                    if yes_or_no.upper() == "YES":
+
+                        appointment_instance.status = "upcoming" ## sets appointment to "upcoming" if referee responds "YES XXXX"
+                        appointment_instance.save()
+                        text = f"Thanks {ref_name}, the appointment has been confirmed. "
+                        send_sms(text, sms.get_sender())
+                        return Response(status=status.HTTP_200_OK)
+
+
+                    elif yes_or_no.upper() == "NO":
+
+                        appointment_instance.status = "cancelled" ## sets appointment to "cancelled" if referee responds "NO XXXX"
+                        appointment_instance.save()
+                        text = f"No worries {ref_name}, we have cancelled this appointment. "
+                        send_sms(text, sms.get_sender())
+                        return Response(status=status.HTTP_200_OK)
+                    
+                    elif yes_or_no.upper() != "NO" or yes_or_no.upper() != "YES": ## Error message, sent if YES or NO mis-spelt. 
+                        text = f"Your message appears to be incorrectly formatted, please check spelling and try again. "
+                        send_sms(text, sms)
+                        return Response(status=status.HTTP_417_EXPECTATION_FAILED)
+                    
+                    else:
+                        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except UnboundLocalError as e:
+            print("Phrase was unbound. This is because no phrase was identified in message, causing phrase to be of type None. ")
+
+    def extract_phrase(self, message): ## Splits message received into YES/NO response and phrase so they can be checked by the SMS Receiver
+        contents = message.split()
         
+        if len(contents) == 2:
+            yes_or_no = contents[0].strip().upper()
+            phrase = contents[1].strip().upper()
+            return [yes_or_no, phrase]
+        else:
+            return None
 
-        ## from here, write tailored methods which will perform
-        ## certain functionality based on what the referee texts
-        ## the system
+class SMS_phrase_generator(): ## Generates unique 4 character phrases, used for identifying messages between application and referee. 
+    unique_phrases:list = [] 
 
+    @classmethod
+    def clean_list(cls): ## reduces unique_phrases length to 150,000 when it gets to 300,000, allows phrase recycling, ensures system doesn't run out of unique phrases
+        if len(cls.unique_phrases) >= 300000:
+                del cls.unique_phrases [:150000]
 
+    def generate_phrase(self):
+        self.clean_list() 
+        characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        prohibited_phrases = ["NAZI", "PORN", "FUCK", "CUNT", "WANK", "KILL", "SHIT", "COCK", "RAPE", "KIKE"]
+        phrase = "".join(random.choices(characters, k=4))
+        if phrase not in self.unique_phrases and phrase not in prohibited_phrases: ## checks to ensure phrases aren't obscene/explicit and also havent already been used. 
+            self.unique_phrases += phrase ## adds phrase to list to ensure phrases aren't repeated
+            return phrase
+        else:
+            self.generate_phrase() ## call method again if phrase was found in phrase list
+            
+## TODO:
+    ## Fix the clean_list methods breaking the code. [COMPLETED]
 
+    ## Implement exception handling so unanticipated responses don't break application. [COMPLETED]
 
+    ## Resolve issue with high-volume of incoming SMSs not appearing in HTTP requests log, or receiving responses. 
+        ## This could potentially be due to Ngrok's free tier giving restricted bandwidth, also free-users'
+        ## traffic is funneled through infrastructure which causes performance bottlenecking. 
 
-
-
-
-        # ## Fetches all referees where referee.phone_number == sender
-        # queryset = Appointment.objects.filter(referee__phone_number=sender)
-
-        # referee = queryset
-
-
-                
-
-
-
-
-
-
-
+        ## Use idea of implementing SMS queue and sending messages out at timed incremements (maybe, may not be necessary if Ngrok is at fault here. )
+        ## Ask Tony if this is urgent.

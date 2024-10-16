@@ -130,8 +130,7 @@ LOGGING = {
 }
 
 ALLOWED_HOSTS = [
-    "f5cb-2001-8004-6e40-691-194c-3ac-28c6-7179.ngrok-free.app",
-    ".ngrok-free.app",
+    ".ngrok.app",
     "localhost",
     "127.0.0.1",
 ]
