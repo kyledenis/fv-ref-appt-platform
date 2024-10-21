@@ -34,9 +34,15 @@ const ScheduleManagement = () => {
             case "Venue":
                 return <Venue/>;
             case "Match":
-                return <MatchAssignment iCards={iCards} selectedMatchID={selectedMatchID}/>;
+                return <MatchAssignment 
+                    iCards={iCards} 
+                    selectedMatchID={selectedMatchID} 
+                    refereeCards={refereeCards} 
+                    onRefereeDetailClick={handleRefereeDetailClick}/>;
             case "Referee":
-                return <Referee refereeCards={refereeCards}/>;
+                return <Referee 
+                    refereeCards={refereeCards} 
+                    selectedRefereeID={selectedRefereeID}/>;
             default:
                 return null;
         }
@@ -47,6 +53,7 @@ const ScheduleManagement = () => {
             refereeID: 200,
             refereeName: "Chris Hemworth",
             refereeGender: "Male",
+            status: "Available",
             refereeExperience: 10,
             refereeDob: "08/11/1983",
             refereeLevel: "3"
@@ -55,6 +62,7 @@ const ScheduleManagement = () => {
             refereeID: 201,
             refereeName: "Hugh Jackman",
             refereeGender: "Male",
+            status: "Available",
             refereeExperience: 12,
             refereeDob: "10/12/1968",
             refereeLevel: "3"
@@ -63,6 +71,7 @@ const ScheduleManagement = () => {
             refereeID: 202,
             refereeName: "Margot Robbie",
             refereeGender: "Female",
+            status: "Available",
             refereeExperience: 8,
             refereeDob: "07/02/1990",
             refereeLevel: "2"
@@ -71,16 +80,35 @@ const ScheduleManagement = () => {
             refereeID: 203,
             refereeName: "Sam Kerr",
             refereeGender: "Female",
+            status: "Unavailable",
             refereeExperience: 12,
             refereeDob: "09/10/1993",
             refereeLevel: "4"
-        }
+        },
+        {
+            refereeID: 204,
+            refereeName: "Liam Hemworth",
+            refereeGender: "Male",
+            status: "Available",
+            refereeExperience: 10,
+            refereeDob: "08/11/1983",
+            refereeLevel: "2"
+        },
+        {
+            refereeID: 205,
+            refereeName: "Cate Blanchett",
+            refereeGender: "Female",
+            status: "Unavailable",
+            refereeExperience: 9,
+            refereeDob: "14/05/1969",
+            refereeLevel: "1"
+        },
     ]
     const iCards = [
         {
             id: 1,
             venueID: 100,
-            refereeID: 200,
+            refereeID: "",
             venueName: "Marvel Stadium",
             status: "Not Assigned",
             time: "10am - 12pm",
@@ -135,6 +163,46 @@ const ScheduleManagement = () => {
             status: "Confirmed",
             time: "10am - 12pm",
             date: "07/07/2023", 
+            location: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit."
+        },
+        {
+            id: 7,
+            venueID: 105,
+            refereeID: 203,
+            venueName: "Adelaide Oval Stadium",
+            status: "Pending",
+            time: "10am - 12pm",
+            date: "07/08/2023", 
+            location: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit."
+        },
+        {
+            id: 8,
+            venueID: 105,
+            refereeID: 203,
+            venueName: "Adelaide Oval Stadium",
+            status: "Confirmed",
+            time: "10am - 12pm",
+            date: "07/09/2023", 
+            location: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit."
+        },
+        {
+            id: 9,
+            venueID: 105,
+            refereeID: 203,
+            venueName: "Adelaide Oval Stadium",
+            status: "Declined",
+            time: "10am - 12pm",
+            date: "07/10/2023", 
+            location: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit."
+        },
+        {
+            id: 10,
+            venueID: 105,
+            refereeID: 203,
+            venueName: "Adelaide Oval Stadium",
+            status: "Pending",
+            time: "10am - 12pm",
+            date: "07/11/2023", 
             location: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit."
         },
     ]

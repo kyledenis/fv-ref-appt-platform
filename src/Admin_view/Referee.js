@@ -1,13 +1,19 @@
 import React, { useState } from "react";
 import RefereeCard from "./RefereeCard";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCaretDown} from "@fortawesome/free-solid-svg-icons";
 
 const Referee = (props) => {
+    const selectedRefereeCard=props.refereeCards.find(card => card.refereeID === props.selectedRefereeID)
+
     // Search function
     const [searchQuery, setSearchQuery] = useState("");
     const [genderFilter, setGenderFilter] = useState("");
     const [levelFilter, setLevelFilter] = useState("");
     const [showGenderDropdown, setShowGenderDropdown] = useState(false);
     const [showLevelDropdown, setShowLevelDropdown] = useState(false);
+
+    const [deletedRefereeCards, setDeletedRefereeCards] = useState([])
 
     const handleSearchQuery = (query) => {
         setSearchQuery(query.target.value);
@@ -25,6 +31,7 @@ const Referee = (props) => {
         setShowLevelDropdown(false); // Hide dropdown after selection
     };
 
+    //after filtering
     const filterRelevantCards = (searchQuery, genderFilter, levelFilter) => {
         return props.refereeCards.filter(card =>
             card.refereeName.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -34,6 +41,12 @@ const Referee = (props) => {
     };
 
     const relevantCards = filterRelevantCards(searchQuery, genderFilter, levelFilter);
+
+    //After deleting
+    const handleDeleteClick=(refereeID)=>{
+        setDeletedRefereeCards([...deletedRefereeCards, refereeID]);
+    }
+    const filerAllDeletedCards= relevantCards.filter(card => !deletedRefereeCards.includes(card.refereeID))
 
     return (
         <>
@@ -52,7 +65,7 @@ const Referee = (props) => {
                     className="shadow-lg rounded-xl universalButton mr-2" 
                     onClick={() => setShowGenderDropdown(!showGenderDropdown)}
                 >
-                    FIlter by Gender
+                    Filter by Gender<FontAwesomeIcon className="ml-2" icon={faCaretDown} />
                 </button>
                 {showGenderDropdown && (
                     <div className="absolute bg-white shadow-lg rounded-md mt-2 w-24">
@@ -80,7 +93,7 @@ const Referee = (props) => {
                     className="shadow-lg rounded-xl universalButton mr-2" 
                     onClick={() => setShowLevelDropdown(!showLevelDropdown)}
                 >
-                    Filter by Level
+                    Filter by Level<FontAwesomeIcon className="ml-2" icon={faCaretDown} />
                 </button>
                 {showLevelDropdown && (
                     <div className="absolute bg-white shadow-lg rounded-md mt-2 w-24">
@@ -118,15 +131,17 @@ const Referee = (props) => {
                 )}
             </div>
             <div className="grid grid-cols-2">
-                {relevantCards.map(card => (
+                {filerAllDeletedCards.map(card => (
                     <RefereeCard
-                        key={card.id}
+                        key={card.refereeID}
+                        className={props.selectedRefereeID === card.refereeID ? "highlight-effect" : ""}
                         refereeID={card.refereeID}
                         refereeName={card.refereeName}
                         refereeGender={card.refereeGender}
                         refereeExperience={card.refereeExperience}
                         refereeDob={card.refereeDob}
                         refereeLevel={card.refereeLevel}
+                        onDeleteClick={()=>handleDeleteClick(card.refereeID)}
                     />
                 ))}
             </div>

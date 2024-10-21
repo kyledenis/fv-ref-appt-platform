@@ -53,11 +53,11 @@ const MatchCard = (props) => {
                     </div>
                     <div className="flex flex-row">
                         <h1 className="flex font-bold">Referee ID: </h1>
-                        <h1 className="ml-1">{props.refereeID}</h1>
+                        <h1 className="truncate ml-1">{props.refereeID}</h1>
                     </div>
                     <div className="flex flex-row">
                         <h1 className="flex font-bold">Time: </h1>
-                        <h1 className="ml-1">{props.time}</h1>
+                        <h1 className="ml-1 truncate">{props.time}</h1>
                     </div>
                 </div>
                 <div className="col-span-1 md:col-span-4 flex flex-col items-start text-left">
@@ -71,7 +71,7 @@ const MatchCard = (props) => {
                     </div>
                     <div className="flex flex-row">
                         <h1 className="flex font-bold">Date: </h1>
-                        <h1 className="ml-1">{props.date}</h1>
+                        <h1 className="truncate ml-1">{props.date}</h1>
                     </div>
                 </div>
                 {/* Location */} 
@@ -87,16 +87,16 @@ const MatchCard = (props) => {
                     {dropdownVisible && (
                         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-10">
                             <ul className="py-1">
-                                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Show Referee Details</li>
+                                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={props.onShowRefereeDetails}>Show Referee Details</li>
                                 <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Show Venue Details</li>
                                 <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={toggleDropdown}>Cancel</li>
                             </ul>
                         </div>
                     )}
-                    <button>
-                        <FontAwesomeIcon className="edit-icon mb-2 icon" icon={faPenToSquare} />
+                    <button onClick={props.onEditClick}>
+                        <FontAwesomeIcon className= "edit-icon mb-2 icon" icon={faPenToSquare} />
                     </button>
-                    <button>
+                    <button onClick={props.onDeleteClick}>
                         <FontAwesomeIcon className="trash-can-icon icon" icon={faTrashCan} />
                     </button>
                 </div>    

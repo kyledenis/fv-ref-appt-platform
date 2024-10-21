@@ -215,5 +215,25 @@ nav button:hover::after,
     height: 100vh; /* Full viewport height */
 }
 
+/* table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
+th, td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
 
+th {
+  background-color: #f2f2f2;
+  position: sticky;
+  top: 0;
+  z-index: 1; /* Ensure headers stay on top */
+}
+
+tr:hover {
+  background-color: #f5f5f5;
+}
