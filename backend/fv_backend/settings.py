@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-0^qocb=#kbi_s(rwf2rejqj5jhzjv@c1zcr80_k+bnmo20z53%"
+SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -145,4 +145,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOW_ALL_ORIGINS = True  # For development only
 
 #API for map
-GOOGLE_API_KEY = 'AIzaSyCjanLMnwAL_fC1u0atPH8zPIp6GGtQB6E'
+GOOGLE_API_KEY
