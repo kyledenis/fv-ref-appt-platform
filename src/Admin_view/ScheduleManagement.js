@@ -3,44 +3,51 @@ import HomePage from "./HomePage";
 import MatchAssignment from "./MatchAssignment";
 import Referee from "./Referee";
 import Venue from "./Venue";
-import 'D:/CAP_FV_Appointment_Platform/fv-appt-platform/src/App.css'; //add
 import Header from "../Header";
+import "../App.css";
 
 const ScheduleManagement = () => {
-    const [selectedRefereeID, setSelectedRefereeID]=useState(null);
+    const [selectedRefereeID, setSelectedRefereeID] = useState(null);
     const [activeTab, setActiveTab] = useState("Home");
     const [selectedMatchID, setSelectedMatchID] = useState(null);
-    const navTabs = ["Home", "Venue", "Match", "Referee"]
+    const navTabs = ["Home", "Venue", "Match", "Referee"];
 
-    const handleTabClick=(tab)=>{
+    const handleTabClick = (tab) => {
         setActiveTab(tab);
         setSelectedMatchID(null);
     };
 
-    const handleCardClick=(id)=>{
+    const handleCardClick = (id) => {
         setActiveTab("Match");
         setSelectedMatchID(id);
-    }
+    };
 
-    const handleRefereeDetailClick=(refereeID)=>{
+    const handleRefereeDetailClick = (refereeID) => {
         setActiveTab("Referee");
         setSelectedRefereeID(refereeID);
-    }
+    };
 
-    const renderContent=(iCards)=>{
-        switch (activeTab){
+    const renderContent = (iCards) => {
+        switch (activeTab) {
             case "Home":
-                return <HomePage iCards={iCards} onCardClick={handleCardClick}/>;
+                return (
+                    <HomePage iCards={iCards} onCardClick={handleCardClick} />
+                );
             case "Venue":
-                return <Venue/>;
+                return <Venue />;
             case "Match":
-                return <MatchAssignment iCards={iCards} selectedMatchID={selectedMatchID}/>;
+                return (
+                    <MatchAssignment
+                        iCards={iCards}
+                        selectedMatchID={selectedMatchID}
+                    />
+                );
             case "Referee":
-                return <Referee refereeCards={refereeCards}/>;
+                return <Referee refereeCards={refereeCards} />;
             default:
                 return null;
         }
-    }
+    };
 
     const refereeCards = [
         {
@@ -49,7 +56,7 @@ const ScheduleManagement = () => {
             refereeGender: "Male",
             refereeExperience: 10,
             refereeDob: "08/11/1983",
-            refereeLevel: "3"
+            refereeLevel: "3",
         },
         {
             refereeID: 201,
@@ -57,7 +64,7 @@ const ScheduleManagement = () => {
             refereeGender: "Male",
             refereeExperience: 12,
             refereeDob: "10/12/1968",
-            refereeLevel: "3"
+            refereeLevel: "3",
         },
         {
             refereeID: 202,
@@ -65,7 +72,7 @@ const ScheduleManagement = () => {
             refereeGender: "Female",
             refereeExperience: 8,
             refereeDob: "07/02/1990",
-            refereeLevel: "2"
+            refereeLevel: "2",
         },
         {
             refereeID: 203,
@@ -73,9 +80,9 @@ const ScheduleManagement = () => {
             refereeGender: "Female",
             refereeExperience: 12,
             refereeDob: "09/10/1993",
-            refereeLevel: "4"
-        }
-    ]
+            refereeLevel: "4",
+        },
+    ];
     const iCards = [
         {
             id: 1,
@@ -84,9 +91,10 @@ const ScheduleManagement = () => {
             venueName: "Marvel Stadium",
             status: "Not Assigned",
             time: "10am - 12pm",
-            date: "07/07/2023", 
-            location: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit."
-        }, 
+            date: "07/07/2023",
+            location:
+                "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
+        },
         {
             id: 2,
             venueID: 101,
@@ -94,9 +102,10 @@ const ScheduleManagement = () => {
             venueName: "Melbourne Cricket Ground",
             status: "Declined",
             time: "10am - 12pm",
-            date: "07/07/2023", 
-            location: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit."
-        }, 
+            date: "07/07/2023",
+            location:
+                "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
+        },
         {
             id: 3,
             venueID: 103,
@@ -104,9 +113,10 @@ const ScheduleManagement = () => {
             venueName: "Docklands Stadium",
             status: "Confirmed",
             time: "10am - 12pm",
-            date: "07/07/2023", 
-            location: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit."
-        }, 
+            date: "07/07/2023",
+            location:
+                "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
+        },
         {
             id: 4,
             venueID: 104,
@@ -114,9 +124,10 @@ const ScheduleManagement = () => {
             venueName: "Adelaide Oval Stadium",
             status: "Confirmed",
             time: "10am - 12pm",
-            date: "07/07/2023", 
-            location: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit."
-        }, 
+            date: "07/07/2023",
+            location:
+                "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
+        },
         {
             id: 5,
             venueID: 105,
@@ -124,8 +135,9 @@ const ScheduleManagement = () => {
             venueName: "Adelaide Oval Stadium",
             status: "Pending",
             time: "10am - 12pm",
-            date: "07/07/2023", 
-            location: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit."
+            date: "07/07/2023",
+            location:
+                "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
         },
         {
             id: 6,
@@ -134,31 +146,39 @@ const ScheduleManagement = () => {
             venueName: "Adelaide Oval Stadium",
             status: "Confirmed",
             time: "10am - 12pm",
-            date: "07/07/2023", 
-            location: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit."
+            date: "07/07/2023",
+            location:
+                "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
         },
-    ]
+    ];
     return (
         <div className="scrollable-container">
             <Header />
             <nav className="bg-fvBottomHeader text-white">
-                {navTabs.map(tab => 
-                <button
-                key={tab}
-                onClick={() => handleTabClick(tab)}
-                className={`py-2 px-4 ${tab === activeTab ? "currentActive" : "" }`}>
-                    {tab}
-                </button>)}
+                {navTabs.map((tab) => (
+                    <button
+                        key={tab}
+                        onClick={() => handleTabClick(tab)}
+                        className={`py-2 px-4 ${
+                            tab === activeTab ? "currentActive" : ""
+                        }`}
+                    >
+                        {tab}
+                    </button>
+                ))}
             </nav>
             <main className="container mx-auto mt-6 grid grid-cols-3 gap-6">
                 <div className="col-span-2">{renderContent(iCards)}</div>
                 <div className="col-span-1">
-                <h2 className="title text-xl font-semibold ml-5 mb-5 text-left">News and Messages</h2>
+                    <h2 className="title text-xl font-semibold ml-5 mb-5 text-left">
+                        News and Messages
+                    </h2>
                     <div className="bg-white shadow rounded-lg p-4 m-4 mt-9 ">
-                        <p className="text-gray-500">There are no messages to display.</p>
+                        <p className="text-gray-500">
+                            There are no messages to display.
+                        </p>
                     </div>
                 </div>
-                
             </main>
         </div>
     );
