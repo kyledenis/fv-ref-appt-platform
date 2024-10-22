@@ -1,3 +1,6 @@
+# General
+config.js
+backend/appointment_management/models.py
 
 # ---- Video files ----
 *.mp4
@@ -274,6 +277,7 @@ celerybeat.pid
 .env
 .venv
 env/
+venv/
 venv/lib/
 ENV/
 env.bak/
