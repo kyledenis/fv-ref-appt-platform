@@ -4,11 +4,11 @@ import {
     mockAppointments,
     mockAvailableDates,
     mockUnavailableDates,
-    mockVenues,
     mockTeams,
+    mockVenues,
     mockReferees,
 } from "../mockData";
-import { getTeams } from "../services/api";
+import geocodeReferees from "../utils/geocodeReferees";
 
 const AppContext = createContext();
 
@@ -31,20 +31,36 @@ export const AppProvider = ({ children }) => {
     });
     
     useEffect(() => {
-        const fetchInitialData = async () => {
-                setUser(mockUser);
-                setAppointments(mockAppointments);
-                setAvailableDates(mockAvailableDates);
-                setUnavailableDates(mockUnavailableDates);
-                setVenues(mockVenues);
-                setReferees(mockReferees);
+        setUser(mockUser);
+        setAppointments(mockAppointments);
+        setAvailableDates(mockAvailableDates);
+        setUnavailableDates(mockUnavailableDates);
+        setTeams(mockTeams);
+        setReferees(mockReferees);
+        setVenues(
+            mockVenues.map((venue) => ({
+                ...venue,
+                location: venue.location
+                    ? {
+                          lat: parseFloat(venue.location.lat),
+                          lng: parseFloat(venue.location.lng),
+                      }
+                    : null,
+            })),
+        );
+
+        // Geocode referee addresses and update state
+        const initReferees = async () => {
+            try {
+                const geocodedReferees = await geocodeReferees(mockReferees);
+                console.log("Geocoded Referees:", geocodedReferees);
+                setReferees(geocodedReferees);
+            } catch (error) {
+                console.error("Error initializing referees:", error);
                 
-                const response = await getTeams(); // Fetch teams from API
-                setTeams(response.data); // Set teams from response
-
+            }
         };
-
-        fetchInitialData();
+        initReferees();
     }, []);
 
     const updateAppointment = (id, updates) => {
@@ -147,13 +163,31 @@ export const AppProvider = ({ children }) => {
     const applyFilters = () => {
         const filtered = referees.filter((referee) => {
             const isAvailable = !filters.availability || referee.isAvailable;
-            const meetsLevelRequirement = !filters.level || referee.level === filters.level;
-            const meetsAgeRequirement = !filters.minAge || referee.age >= filters.minAge;
-            const meetsExperienceRequirement = !filters.minExperience || referee.experienceYears >= filters.minExperience;
-            const hasRequiredQualification = !filters.qualification || referee.qualifications.includes(filters.qualification);
-            const withinDistance = !filters.distance || calculateDistance(referee.location, { lat: -37.8136, lng: 144.9631 }) <= filters.distance;
+            const meetsLevelRequirement =
+                !filters.level || referee.level === filters.level;
+            const meetsAgeRequirement =
+                !filters.minAge || referee.age >= filters.minAge;
+            const meetsExperienceRequirement =
+                !filters.minExperience ||
+                referee.experienceYears >= filters.minExperience;
+            const hasRequiredQualification =
+                !filters.qualification ||
+                referee.qualifications.includes(filters.qualification);
+            const withinDistance =
+                !filters.distance ||
+                calculateDistance(referee.location, {
+                    lat: -37.8136,
+                    lng: 144.9631,
+                }) <= filters.distance;
 
-            return isAvailable && meetsLevelRequirement && meetsAgeRequirement && meetsExperienceRequirement && hasRequiredQualification && withinDistance;
+            return (
+                isAvailable &&
+                meetsLevelRequirement &&
+                meetsAgeRequirement &&
+                meetsExperienceRequirement &&
+                hasRequiredQualification &&
+                withinDistance
+            );
         });
 
         setFilteredReferees(filtered);

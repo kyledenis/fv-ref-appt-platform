@@ -4,80 +4,131 @@ import TitleWithBar from "../components/TitleWithBar";
 import Button from "../components/Button";
 
 const RefereeFilter = () => {
-    const { referees, venues, filters, updateFilters, applyFilters } =
-        useAppContext();
+    const { referees, venues, filters, updateFilters } = useAppContext();
     const mapRef = useRef(null);
     const [map, setMap] = useState(null);
     const [markers, setMarkers] = useState([]);
     const [filteredReferees, setFilteredReferees] = useState([]);
 
     useEffect(() => {
-        if (!map) {
-            const googleMapScript = document.createElement("script");
-            googleMapScript.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&callback=initMap&v=weekly`;
-            googleMapScript.async = true;
-            window.document.body.appendChild(googleMapScript);
+        const loadGoogleMapsApi = () => {
+            const script = document.createElement("script");
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&callback=initMap`;
+            script.async = true;
+            script.defer = true;
+            document.head.appendChild(script);
 
             window.initMap = () => {
                 const newMap = new window.google.maps.Map(mapRef.current, {
                     center: { lat: -37.8136, lng: 144.9631 },
-                    zoom: 10,
+                    zoom: 12,
                 });
                 setMap(newMap);
             };
+        };
 
-            return () => {
-                window.document.body.removeChild(googleMapScript);
-            };
+        if (!window.google) {
+            loadGoogleMapsApi();
+        } else {
+            window.initMap();
         }
-    }, [map]);
+
+        return () => {
+            window.google = undefined;
+        };
+    }, []);
 
     useEffect(() => {
         if (map) {
-            updateMapMarkers();
+            try {
+                updateMapMarkers();
+            } catch (error) {
+                console.error("Error updating map markers:", error);
+            }
         }
     }, [map, filteredReferees, venues]);
 
-    const updateMapMarkers = () => {
-        // Clear existing markers
-        markers.forEach((marker) => marker.setMap(null));
+    useEffect(() => {
+        console.log("Venues data:", venues);
+        if (
+            venues.some(
+                (venue) =>
+                    !venue.location ||
+                    typeof venue.location.lat !== "number" ||
+                    typeof venue.location.lng !== "number",
+            )
+        ) {
+            console.warn("Some venues have invalid location data");
+        }
+    }, [venues]);
 
+    const updateMapMarkers = () => {
+        markers.forEach((marker) => marker.setMap(null));
         const newMarkers = [];
 
-        // Add referee markers
         filteredReferees.forEach((referee) => {
-            const marker = new window.google.maps.Marker({
-                position: referee.location,
-                map: map,
-                icon: {
-                    path: window.google.maps.SymbolPath.CIRCLE,
-                    scale: 8,
-                    fillColor: referee.isAvailable ? "#4CAF50" : "#FF5722",
-                    fillOpacity: 1,
-                    strokeWeight: 2,
-                    strokeColor: "#FFFFFF",
-                },
-                title: referee.name,
-            });
-            newMarkers.push(marker);
+            if (
+                referee.location &&
+                typeof referee.location.lat === "number" &&
+                typeof referee.location.lng === "number"
+            ) {
+                try {
+                    const marker = new window.google.maps.Marker({
+                        position: referee.location,
+                        map: map,
+                        icon: {
+                            path: window.google.maps.SymbolPath.CIRCLE,
+                            scale: 8,
+                            fillColor: referee.isAvailable
+                                ? "#4CAF50"
+                                : "#FF5722",
+                            fillOpacity: 1,
+                            strokeWeight: 2,
+                            strokeColor: "#FFFFFF",
+                        },
+                        title: referee.name,
+                    });
+                    newMarkers.push(marker);
+                } catch (error) {
+                    console.error(
+                        "Error creating referee marker:",
+                        error,
+                        referee,
+                    );
+                }
+            } else {
+                console.warn("Invalid location data for referee:", referee);
+            }
         });
 
-        // Add venue markers
         venues.forEach((venue) => {
-            const marker = new window.google.maps.Marker({
-                position: venue.location,
-                map: map,
-                icon: {
-                    path: window.google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
-                    scale: 6,
-                    fillColor: "#2196F3",
-                    fillOpacity: 1,
-                    strokeWeight: 2,
-                    strokeColor: "#FFFFFF",
-                },
-                title: venue.name,
-            });
-            newMarkers.push(marker);
+            if (
+                venue.location &&
+                typeof venue.location.lat === "number" &&
+                typeof venue.location.lng === "number"
+            ) {
+                try {
+                    const marker = new window.google.maps.Marker({
+                        position: venue.location,
+                        map: map,
+                        icon: {
+                            path: window.google.maps.SymbolPath
+                                .BACKWARD_CLOSED_ARROW,
+                            scale: 6,
+                            fillColor: "#2196F3",
+                            fillOpacity: 1,
+                            strokeWeight: 2,
+                            strokeColor: "#FFFFFF",
+                        },
+                        title: venue.name,
+                    });
+                    newMarkers.push(marker);
+                } catch (error) {
+                    console.error("Error creating venue marker:", error, venue);
+                }
+            } else {
+                console.warn("Invalid location data for venue:", venue);
+            }
         });
 
         setMarkers(newMarkers);
@@ -93,6 +144,8 @@ const RefereeFilter = () => {
 
     const handleApplyFilters = () => {
         const filtered = referees.filter((referee) => {
+            if (!referee.location) return false;
+
             const isAvailable = !filters.availability || referee.isAvailable;
             const meetsLevelRequirement =
                 !filters.level || referee.level === filters.level;
@@ -104,12 +157,16 @@ const RefereeFilter = () => {
             const hasRequiredQualification =
                 !filters.qualification ||
                 referee.qualifications.includes(filters.qualification);
-            const withinDistance =
-                !filters.distance ||
-                calculateDistance(referee.location, {
-                    lat: -37.8136,
-                    lng: 144.9631,
-                }) <= parseInt(filters.distance);
+
+            let withinDistance = true;
+            if (filters.distance) {
+                const centerPoint = { lat: -37.8136, lng: 144.9631 }; // Melbourne CBD
+                const distance = calculateDistance(
+                    referee.location,
+                    centerPoint,
+                );
+                withinDistance = distance <= parseInt(filters.distance);
+            }
 
             return (
                 isAvailable &&

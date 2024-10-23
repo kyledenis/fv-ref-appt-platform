@@ -11,6 +11,17 @@ The main goals of this platform are:
 - Address the issue of mass declines in age groups of U12, 13, and 14's fixtures
 - Ensure higher acceptance of appointments
 
+## Contents
+
+- [Football Victoria Referee Management Platform](#football-victoria-referee-management-platform)
+  - [Project Overview](#project-overview)
+  - [Contents](#contents)
+  - [Frontend Setup](#frontend-setup)
+  - [Backend Setup](#backend-setup)
+  - [Integrate Azure SQL Database with Django](#integrate-azure-sql-database-with-django)
+  - [Available Scripts](#available-scripts)
+  - [Project Structure](#project-structure)
+
 ## Frontend Setup
 
 1. Clone the repository and navigate to the root directory:
@@ -38,11 +49,11 @@ The main goals of this platform are:
     npm run dev
     ```
 
-    > Note:
+    > [!IMPORTANT]
     > - Keep the frontend and backend servers running in separate terminals.
     > - The backend server must be running for the frontend to work properly.
 
-5. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+5. Open [localhost:3000](http://localhost:3000) to view it in the browser.
 
 ## Backend Setup
 
@@ -95,24 +106,23 @@ The main goals of this platform are:
     python3 manage.py runserver
     ```
 
-The backend will be available at `http://localhost:8000`.
+> [!TIP]
+The backend will be available at [localhost:8000](http://localhost:8000).
 
-> Keep terminal open to host backend.
-## Integrate Azure SQL database with Django
+## Integrate Azure SQL Database with Django
 
-1. Remove old migration files in appointment_management/migrations (optional)
+1. ~~Remove old migration files in appointment_management/migrations (optional)~~
 
 2. Install the required packages in your virtual environment
-    ```
+
+    ```python
     pip install pyodbc
-    ```
-    ```
     pip install mssql-django
     ```
 
-3. Save these packages in requirements.txt (optional)
+3. ~~Save these packages in requirements.txt (optional)~~
 
-    ```
+    ```python
     pip freeze > requirements.txt
     ```
 
@@ -123,16 +133,17 @@ The backend will be available at `http://localhost:8000`.
     In the ODBC Data Source Administrator window, go to the "Drivers" tab.
     Look for "ODBC Driver 17 for SQL Server" or the specific version of the driver you installed.
 
-    MacOS users:
-    Run the command
-    ```
+    **MacOS users, run the command:**
+
+    ```odbc
     odbcinst -q -d -n
     ```
-    If not installed, install via https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server?view=sql-server-ver16
+
+    If not installed, install via <https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server?view=sql-server-ver16>
 
 5. Navigate to the fv_backend/settings.py file and change the database settings to:
 
-    ```
+    ```python
     DATABASES = {
         'default': {
             'ENGINE': 'mssql',
@@ -147,36 +158,33 @@ The backend will be available at `http://localhost:8000`.
         },
     }
     ```
-6. Delete previous models in appointment_management/models.py
+
+6. ~~Delete previous models in appointment_management/models.py~~
 
 7. Migrate Azure database models to the app's model file
 
+    ```python
+    python3 manage.py inspectdb > appointment_management/models.py
     ```
-    python manage.py inspectdb > appointment_management/models.py
+
+    > [!NOTE]
+    > If you encounter error: `ValueError: source code strings cannot contain null bytes`, check the encoding type of the newly generated models.py file at the bottom right of VSCode screen: UTF-8 and UTF-16 may be conflicted.
+
+8. Check if database tables can be migrated
+
+    Execute the file `test-database.py`, and check terminal output.
+
+    ```python
+    cd backend/appointment_management
+    python3 test-database.py
     ```
 
-If you encounter the ```ValueError: source code strings cannot contain null bytes```, check the encoding type of the newly generated
-models.py file at the bottom right of VSCode screen: UTF-8 and UTF-16 may be conflicted.
+> You can also check if you have access to Azure SQL database on Azure portal: <https://portal.azure.com/#browse/Microsoft.Sql%2Fservers%2Fdatabases>
 
-8. Check if database tables can be migrated 
+> [!TIP]
+> Keep terminal open to host backend.
 
-    Create a python file (example.py) and type
-
-    ```
-    from appointment_management.models import Referee
-
-    first_referee = Referee.objects.get(pk=1)
-
-    print(first_referee)
-    ```
-    Run the file and check terminal output
-
-    ```
-    python example.py
-    ```
-> You can also check if you have access to Azure SQL database on Azure portal: https://portal.azure.com/#browse/Microsoft.Sql%2Fservers%2Fdatabases
-
-### Available Scripts
+## Available Scripts
 
 - `npm run dev`: Runs both the React app and the Express server concurrently
 - `npm start`: Runs the React app in development mode

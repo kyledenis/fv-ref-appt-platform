@@ -1,5 +1,8 @@
 # General
 config.js
+backend/appointment_management/models.py
+backend/appointment_management/migrations/0001_initial.py
+backend/appointment_management/__init__.py
 
 # ---- Video files ----
 *.mp4
@@ -224,9 +227,6 @@ instance/
 # Sphinx documentation
 docs/_build/
 
-# Virtual environment
-backend/venv
-
 # PyBuilder
 .pybuilder/
 target/
@@ -279,6 +279,7 @@ celerybeat.pid
 .env
 .venv
 env/
+venv/
 venv/lib/
 ENV/
 env.bak/

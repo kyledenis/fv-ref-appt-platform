@@ -30,7 +30,7 @@ class Appointment(models.Model):
 
     status:int = models.CharField(max_length = 10,
         choices=game_status,
-        default=ongoing) 
+        default=ongoing)
 
     class Meta:
         managed = True

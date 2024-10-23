@@ -25,9 +25,7 @@ SECRET_KEY = "django-insecure-0^qocb=#kbi_s(rwf2rejqj5jhzjv@c1zcr80_k+bnmo20z53%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-
-]
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -39,9 +37,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'appointment_management',
     'rest_framework',
     'corsheaders',
-    'appointment_management',
 ]
 
 MIDDLEWARE = [
@@ -78,6 +76,7 @@ WSGI_APPLICATION = "fv_backend.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
@@ -92,8 +91,9 @@ DATABASES = {
     },
 }
 
+
 # Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/auth-password-validators
+# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {

@@ -68,7 +68,7 @@ export const mockReferees = [
     {
         id: 1,
         name: "John Doe",
-        location: { lat: -37.8136, lng: 144.9631 },
+        address: "200 Spencer St, Melbourne VIC 3000",
         level: "Senior",
         isAvailable: true,
         age: 35,
@@ -78,7 +78,7 @@ export const mockReferees = [
     {
         id: 2,
         name: "Jane Smith",
-        location: { lat: -37.8235, lng: 144.9523 },
+        address: "163 Collins St, Melbourne VIC 3000",
         level: "Junior",
         isAvailable: false,
         age: 25,
@@ -88,7 +88,7 @@ export const mockReferees = [
     {
         id: 3,
         name: "Bob Johnson",
-        location: { lat: -37.803, lng: 144.97 },
+        address: "1 Batman Ave, Melbourne VIC 3004",
         level: "Intermediate",
         isAvailable: true,
         age: 30,
@@ -98,7 +98,7 @@ export const mockReferees = [
     {
         id: 4,
         name: "Alice Brown",
-        location: { lat: -37.818, lng: 144.953 },
+        address: "8 Whiteman St, Southbank VIC 3006",
         level: "Senior",
         isAvailable: true,
         age: 40,
@@ -108,7 +108,7 @@ export const mockReferees = [
     {
         id: 5,
         name: "Charlie Davis",
-        location: { lat: -37.81, lng: 144.96 },
+        address: "192 Wellington Parade, East Melbourne VIC 3002",
         level: "Junior",
         isAvailable: true,
         age: 22,
