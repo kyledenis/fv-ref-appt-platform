@@ -118,7 +118,7 @@ class AvailabilityViewSet(viewsets.ModelViewSet):
     def list(self, request):
         queryset = self.get_queryset()
         if (request.query_params.get("referee")):
-            queryset = queryset.filter(referee=request.query_params.get("referee"))
+            queryset = queryset.filter(referee_id=request.query_params.get("referee"))
         serializer = AvailabilitySerializer(queryset, many = True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     

@@ -1,58 +1,66 @@
-import React, {useEffect, useState} from "react";
+import React, { useState, useEffect} from "react";
 
-const Relative = () => {
-    const [relatives, setRelatives] = useState([]);
+const Teams = () => {
+    const [clubs, setClubs] = useState([]);
+    const [newClub, setNewClub] = useState({
+        club_id: "",
+        club_name: "",
+        home_venue: "",
+        contact_name: "",
+        contact_phone_number: "",
+    });
 
-    //Fetch relatives from the API
+    //Fetch clubs from the API
     useEffect(() => {
-        fetch("http://127.0.0.1:8000/api/relative/")
+        fetch("http://127.0.0.1:8000/api/club/")
             .then((response) => response.json())
-            .then((data) => setRelatives(data))
-            .catch((error) => console.error("Error fetching relatives:", error));
+            .then((data) => setClubs(data))
+            .catch((error) => console.error("Error fetching clubs:", error));
     }, []);
 
     return (
         <div>
-            <h2 className="text-xl font-semibold mb-4">Manage Relatives</h2>
-            {/* Display a list of relative */}
+            <h2 className="text-xl font-semibold mb-4">Manage Clubs</h2>
+
+            {/* Display a list of clubs */}
 
             <table className="min-w-full bg-white">
                 <thead>
                     <tr>
                         <th className="px-3 py-3 border-b-2 border-gray-400 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Relative referee
+                            Club ID 
                         </th>
                         <th className="px-3 py-3 border-b-2 border-gray-400 text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Club Name
                         </th>
                         <th className="px-3 py-3 border-b-2 border-gray-400 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Relative name
+                            Home Venue
                         </th>
                         <th className="px-3 py-3 border-b-2 border-gray-400 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Relationship
+                            Contact Name
                         </th>
                         <th className="px-3 py-3 border-b-2 border-gray-400 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Age
+                            Contact Phone Number
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    {relatives.map((relative) => (
-                        <tr key={relative.referee}>
+                    {clubs.map((club) => (
+                        <tr key={club.club_id}>
                             <td className="px-3 py-3 whitespace-no-wrap border-b border-gray-200 text-left">
-                                {relative.referee}
+                                {club.club_id}
                             </td>
                             <td className="px-3 py-3 whitespace-no-wrap border-b border-gray-200 text-left">
-                                {relative.club}
+                                {club.club_name}
                             </td>
                             <td className="px-3 py-3 whitespace-no-wrap border-b border-gray-200 text-left">
-                                {relative.relative_name}
+                                {club.home_venue}
                             </td>
                             <td className="px-3 py-3 whitespace-no-wrap border-b border-gray-200 text-left">
-                                {relative.relationship}
+                                {club.contact_name}
                             </td>
                             <td className="px-3 py-3 whitespace-no-wrap border-b border-gray-200 text-left">
-                                {relative.age}
+                                {club.contact_phone_number}
                             </td>
                         </tr>
                     ))}
@@ -61,4 +69,5 @@ const Relative = () => {
         </div>
     );
 };
-export default Relative;
+
+export default Teams;
