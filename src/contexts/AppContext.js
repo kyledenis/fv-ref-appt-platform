@@ -8,6 +8,7 @@ import {
     mockTeams,
     mockReferees,
 } from "../mockData";
+import { getTeams } from "../services/api";
 
 const AppContext = createContext();
 
@@ -16,7 +17,7 @@ export const AppProvider = ({ children }) => {
     const [appointments, setAppointments] = useState([]);
     const [availableDates, setAvailableDates] = useState([]);
     const [unavailableDates, setUnavailableDates] = useState([]);
-    const [venues, setVenues] = useState(mockVenues);
+    const [venues, setVenues] = useState([]);
     const [teams, setTeams] = useState([]);
     const [referees, setReferees] = useState([]);
     const [filteredReferees, setFilteredReferees] = useState([]);
@@ -28,15 +29,22 @@ export const AppProvider = ({ children }) => {
         qualification: "",
         distance: 50,
     });
-
+    
     useEffect(() => {
-        setUser(mockUser);
-        setAppointments(mockAppointments);
-        setAvailableDates(mockAvailableDates);
-        setUnavailableDates(mockUnavailableDates);
-        setTeams(mockTeams);
-        setVenues(mockVenues);
-        setReferees(mockReferees);
+        const fetchInitialData = async () => {
+                setUser(mockUser);
+                setAppointments(mockAppointments);
+                setAvailableDates(mockAvailableDates);
+                setUnavailableDates(mockUnavailableDates);
+                setVenues(mockVenues);
+                setReferees(mockReferees);
+                
+                const response = await getTeams(); // Fetch teams from API
+                setTeams(response.data); // Set teams from response
+
+        };
+
+        fetchInitialData();
     }, []);
 
     const updateAppointment = (id, updates) => {

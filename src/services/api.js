@@ -15,7 +15,7 @@ export const getAvailableDates = () => api.get("/available-dates/");
 export const getUnavailableDates = () => api.get("/unavailable-dates/");
 export const updateAvailability = (data) =>
     api.post("/update-availability/", data);
-export const getTeams = () => api.get("/teams/");
+export const getTeams = () => api.get("/club/"); // Fix from team to club to match with the api url
 export const getVenues = () => api.get("/venues/");
 export const createVenue = (data) => api.post("/venues/", data);
 export const updateUserSettings = (userId, data) =>
