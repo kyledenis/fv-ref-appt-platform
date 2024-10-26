@@ -79,6 +79,8 @@ The FV Referees department would like to provide a better experience for referee
     ```
 
 The backend will be available at `http://localhost:8000`.
+> Keep terminal open to host backend.
+
 
 ## SMS Notifications
 
@@ -118,7 +120,6 @@ Note: The port for the django server and the pyngrok server must be the same.
    The message will contain instructions on how to accept/decline appoints. 
 
 
-> Keep terminal open to host backend.
 
 ### Available Scripts
 
