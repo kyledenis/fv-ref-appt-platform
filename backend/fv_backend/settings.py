@@ -163,7 +163,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOW_ALL_ORIGINS = True  # For development only
 
 #API for map
-GOOGLE_API_KEY = 'AIzaSyCjanLMnwAL_fC1u0atPH8zPIp6GGtQB6E'
+GOOGLE_API_KEY = ##
 
 # APP key for CellCast
-CELLCAST_APP_KEY = 'CELLCAST9d9b9df5aef8432fad3bc51c94d12321'
+CELLCAST_APP_KEY = ## I've put this on discord under #resources but if you can't find it just dm me and I'll provide it. 
