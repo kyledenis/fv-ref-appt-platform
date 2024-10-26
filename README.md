@@ -81,6 +81,15 @@ The FV Referees department would like to provide a better experience for referee
 The backend will be available at `http://localhost:8000`.
 > Keep terminal open to host backend.
 
+### Available Scripts
+
+In the project directory, you can run:
+
+- `npm start`: Runs the app in development mode
+- `npm test`: Launches the test runner
+- `npm run build`: Builds the app for production
+
+
 
 ## SMS Notifications
 
@@ -120,11 +129,3 @@ Note: The port for the django server and the pyngrok server must be the same.
    The message will contain instructions on how to accept/decline appoints. 
 
 
-
-### Available Scripts
-
-In the project directory, you can run:
-
-- `npm start`: Runs the app in development mode
-- `npm test`: Launches the test runner
-- `npm run build`: Builds the app for production
