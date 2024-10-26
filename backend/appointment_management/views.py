@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from .models import *
 from .serializers import *
-from datetime import date
+from datetime import date, datetime
 from .sms_client import send_sms
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -22,6 +22,7 @@ import random
 import uuid
 import traceback
 import time
+from .message_automator import sms_queue
 # Create your views here.
 
 
@@ -62,6 +63,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             ## Get appointment details
             date = appointment.formatted_date # extracts date from appointment instance
             referee = appointment.referee ## extracts referee corresponding to appointment.referee foreign key
+            referee_ID = appointment.referee_id
 
             ## Get referee's details
             first_name = referee.first_name ## extracts referee's first name
@@ -84,8 +86,12 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
             ## Add {time} to text when issue is fixed.
             text = f"Hi {first_name}, there's an upcoming match at {time} on the {date}. It's a {level} division match at {venue_name}, {venue_location}, are you interested in overseeing this match?\n\nPlease respond YES or NO, followed by {phrase}.\n\nFor example, YES {phrase} or NO {phrase}. Thanks {first_name}. \n\n  - Football Victoria." 
-            send_sms(text, phone_number)
-            sms_to_add = SMS_Interchange(appointment_id, first_name, phone_number, phrase)
+            empty_queue_test = len(sms_queue)
+            sms_queue.append({"phone_number": phone_number, "text": text})
+            if len(sms_queue) > empty_queue_test:
+                print("Message successfully added to queue. ")
+            # send_sms(text, phone_number)
+            sms_to_add = SMS_Interchange(appointment_id, referee_ID, first_name, phone_number, phrase)
             
 
             return Response(serializer.data, status= status.HTTP_201_CREATED)
@@ -563,12 +569,12 @@ class SysdiagramsViewSet(viewsets.ModelViewSet):
     serializer_class = SysdiagramsSerializer
 
 
-
 class SMS_Interchange(): ## Where SMS messages are stored, is iterated through for confirming or cancelling appointments when message is received. 
     sms_database:list = [] 
 
-    def __init__(self, appointment_ID, referee_name, sender, phrase): ## These values are passed to the interchange when the appointments are made. 
+    def __init__(self, appointment_ID, referee_ID, referee_name, sender, phrase): ## These values are passed to the interchange when the appointments are made. 
         self.appointment_ID:str = appointment_ID
+        self.referee_ID:str = referee_ID
         self.referee_name:str = referee_name
         self.sender:str = sender
         self.phrase:str = phrase
@@ -577,23 +583,38 @@ class SMS_Interchange(): ## Where SMS messages are stored, is iterated through f
 
     def get_appointment_ID(self):
         return self.appointment_ID
+    
+    def get_referee_ID(self):
+        return self.referee_ID
+    
+    def set_referee_ID(self, referee_ID):
+        self.referee_ID = referee_ID
 
     def get_referee_name(self):
         return self.referee_name
     
+    def set_referee_name(self, name):
+        self.refere_name = name
+    
     def get_sender(self):
         return self.sender
     
+    def set_sender(self, sender):
+        self.sender = sender
+    
     def get_phrase(self):
         return self.phrase
+    
+    def set_phrase(self, phrase):
+        self.phrase = phrase
     
     def get_sms_database(cls):
         return cls.sms_database
     
     @classmethod
     def clean_list(cls): ## reduces sms_database[] to 150000 items if length hits 300000
-        if len(cls.sms_database) >= 300000:
-            del cls.sms_database [:150000]
+        if len(cls.sms_database) >= 60000:
+            del cls.sms_database [:30000]
 
 
 
@@ -602,7 +623,8 @@ class SMS_Receiver(APIView):
         # sms_data = request.data ## sms_data holds incoming payload (which from Cellcast is always a list)
         # for sms in sms_data: ## iterates through sms_data and passes them to handle_sms()
         #     self.handle_sms(sms)
-        # return Response(status=status.HTTP_200_OK) ## This is an old implementation but don't delete it. 
+        # return Response(status=status.HTTP_200_OK) 
+        ## This is an old implementation but don't delete it. 
 
     
         sms_data:list = request.data
@@ -650,7 +672,7 @@ class SMS_Receiver(APIView):
         except ValueError as e:
             print(f"Message was missing YES/NO response or phrase OR was >2 tokens long. {e}")
             
-        ## text = f"Referee response: {yes_or_no} {phrase}" ## Sends sender's message back to them, used for texting. 
+        ## text = f"Referee response: {yes_or_no} {phrase}" ## Sends sender's message back to them, used for testing. 
         ## send_sms(text, sender)
         try: 
             for sms in SMS_Interchange.sms_database:
@@ -666,8 +688,9 @@ class SMS_Receiver(APIView):
                     if yes_or_no.upper() == "YES":
 
                         appointment_instance.status = "upcoming" ## sets appointment to "upcoming" if referee responds "YES XXXX"
+                        appointment_instance.referee_id = sms.get_referee_ID() ## this is the last thing Ive changed
                         appointment_instance.save()
-                        text = f"Thanks {ref_name}, the appointment has been confirmed. "
+                        text = f"Thank you, the appointment has been confirmed. "
                         send_sms(text, sms.get_sender())
                         return Response(status=status.HTTP_200_OK)
 
@@ -676,8 +699,60 @@ class SMS_Receiver(APIView):
 
                         appointment_instance.status = "cancelled" ## sets appointment to "cancelled" if referee responds "NO XXXX"
                         appointment_instance.save()
-                        text = f"No worries {ref_name}, we have cancelled this appointment. "
+
+                        text = f"No worries, we have cancelled this appointment. "
                         send_sms(text, sms.get_sender())
+
+                        venue_x = appointment_instance.venue ## declares instance of venue that appointment was scheduled at
+                        venue_location = venue_x.location ## assigns venue.location from cancelled appointment to venue_location
+
+                        print(f"Venue_location: {venue_location}") 
+                        venue_postcode = venue_location.split()[-1] ## extracts postcode (final token) from venue.location
+                        print(f"Venue_postcode: {venue_postcode}")
+
+                        referee_queryset = Referee.objects.filter(zip_code = venue_postcode) ## gets referees from database who's postcode matches the venue
+
+                        substitute_referees = [] ## list of referees who live in the same postcode as the match venue
+                        for x in referee_queryset:
+                            if x.phone_number == "61492934088": ## will only append referees who match venue post code who have my phone number (for testing).
+                                substitute_referees.append(x)
+
+                        if len(substitute_referees) == 0:
+                            print("Substitute referees is empty. ")
+                        else:
+                            for j, referee in enumerate(substitute_referees):
+                                print(f"{j} {referee}")
+                        
+                        new_referee = (random.choice(substitute_referees))
+                        appointment = Appointment.objects.get(appointment_id=sms.get_appointment_ID())
+
+                        new_ref_ph = new_referee.phone_number ## gets new referee's phone number
+                        new_ref_name = new_referee.first_name ## gets new referee's first name
+
+                        sms.set_sender(new_ref_ph) ## changes sender for this sms to the new ref's number
+                        sms.set_referee_name(new_ref_name) ## changes the referee name to the new referee's name
+                        sms.set_referee_ID(new_referee.referee_id)
+                        
+                        ## Get appointment details
+                        date = appointment.formatted_date # extracts date from appointment instance
+
+                        ## Get match details
+                        match = appointment.match ## extracts match corresponding to appointment.match_id foreign key
+                        level = match.level ## extracts level (age division) of match
+                        time = match.formatted_time
+
+
+                        ## Get venue details
+                        venue = match.venue ## extracts venue corresponding to venue_id foreign key.
+                        venue_name = venue.venue_name ## extracts venue name
+                        venue_location = venue.location ## extracts venue location
+
+
+                        text = f"Hi {new_ref_name}, there's an upcoming match at {time} on the {date}. It's a {level} division match at {venue_name}, {venue_location}, are you interested in overseeing this match?\n\nPlease respond YES or NO, followed by {phrase}.\n\nFor example, YES {phrase} or NO {phrase}. Thanks {new_ref_name}. \n\n  - Football Victoria." 
+                        send_sms(text, new_ref_ph)
+
+
+                        
                         return Response(status=status.HTTP_200_OK)
                     
                     elif yes_or_no.upper() != "NO" or yes_or_no.upper() != "YES": ## Error message, sent if YES or NO mis-spelt. 
@@ -706,28 +781,19 @@ class SMS_phrase_generator(): ## Generates unique 4 character phrases, used for 
 
     @classmethod
     def clean_list(cls): ## reduces unique_phrases length to 150,000 when it gets to 300,000, allows phrase recycling, ensures system doesn't run out of unique phrases
-        if len(cls.unique_phrases) >= 300000:
-                del cls.unique_phrases [:150000]
+        if len(cls.unique_phrases) >= 60000:
+                del cls.unique_phrases [:30000]
 
     def generate_phrase(self):
         self.clean_list() 
+        numbers = "0123456789"
         characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        prohibited_phrases = ["NAZI", "PORN", "FUCK", "CUNT", "WANK", "KILL", "SHIT", "COCK", "RAPE", "KIKE"]
-        phrase = "".join(random.choices(characters, k=4))
-        if phrase not in self.unique_phrases and phrase not in prohibited_phrases: ## checks to ensure phrases aren't obscene/explicit and also havent already been used. 
+        term1 = "".join(random.choices(numbers, k=2))
+        term2 = "".join(random.choices(characters, k=2))
+        # phrase = "".join(random.choices(characters, k=4))
+        phrase = term1 + term2
+        if phrase not in self.unique_phrases: ## checks to ensure phrases havent already been used. 
             self.unique_phrases += phrase ## adds phrase to list to ensure phrases aren't repeated
             return phrase
         else:
-            self.generate_phrase() ## call method again if phrase was found in phrase list
-            
-## TODO:
-    ## Fix the clean_list methods breaking the code. [COMPLETED]
-
-    ## Implement exception handling so unanticipated responses don't break application. [COMPLETED]
-
-    ## Resolve issue with high-volume of incoming SMSs not appearing in HTTP requests log, or receiving responses. 
-        ## This could potentially be due to Ngrok's free tier giving restricted bandwidth, also free-users'
-        ## traffic is funneled through infrastructure which causes performance bottlenecking. 
-
-        ## Use idea of implementing SMS queue and sending messages out at timed incremements (maybe, may not be necessary if Ngrok is at fault here. )
-        ## Ask Tony if this is urgent.
+            self.generate_phrase() ## calls method again if phrase was found in phrase list

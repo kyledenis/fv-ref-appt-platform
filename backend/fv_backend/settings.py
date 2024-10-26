@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'appointment_management',
-]
+    ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
