@@ -10,10 +10,10 @@ import Relative from "./Relative";
 import LoginPage from "./LoginPage";
 import TitleWithBar from "./components/TitleWithBar";
 import TimePicker from "./components/TimePicker";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from "react-toastify";
 import axios from "axios";
 import Availability from "./Availability";
+import Preference from "./Preference";
 
 const RefereeManagement = () => {
     const [activeTab, setActiveTab] = useState("dashboard");
@@ -80,7 +80,7 @@ const RefereeManagement = () => {
         "Mon": "Monday",
         "Tue": "Tuesday",
         "Wed": "Wednesday",
-        "Thu": "Thursay",
+        "Thu": "Thursday",
         "Fri": "Friday",
         "Sat": "Saturday",
         "Sun": "Sunday"
@@ -201,19 +201,24 @@ const RefereeManagement = () => {
             date: availabilityData.date,
         }
         if (availability.date || availability.weekday) {
-            const loading = toast.loading("Please wait...");
             const response = await axios.post("http://localhost:8000/api/availability/", availability);
             console.log(response);
             if (response.status == 201) {
-                toast.update(loading, {render: "Submited Successfully", type: "success", isLoading: false, autoClose: 5000, hideProgressBar: false,
-                    closeOnClick: true,
+                toast.success("Availability set", {
+                    autoClose: 5000,
                     pauseOnHover: true,
+                    closeOnClick: true,
                     theme: "dark"
                 });
                 getAvailabilityForReferee();
             }
             else {
-                toast.update(loading, {render: "Something went wrong", type: "error", isLoading: false });
+                toast.error("Unable to add availability", {
+                    autoClose: 5000,
+                    pauseOnHover: true,
+                    closeOnClick: true,
+                    theme: "dark"
+                });
             }
         }
         //reset availabilityData
@@ -440,7 +445,7 @@ const RefereeManagement = () => {
             case "settings":
                 return <Settings />;
             case "venues":  // Add venue tab
-                return <Venue />;
+                return <Venue referee_id={refereeProfile.referee_id}/>;
             case "relatives":
                 return <Relative />;
             default:
@@ -454,7 +459,7 @@ const RefereeManagement = () => {
 
     return (
         <div className="bg-fvBackground min-h-screen">
-            <header className="bg-fvTopHeader text-white p-2">
+            <header className="bg-fvTopHeader text-white">
                 <div className="container mx-auto flex justify-between items-center">
                     <h1 className="text-s font-bold">
                         Referee Management Platform
@@ -518,11 +523,12 @@ const RefereeManagement = () => {
                 </div>
             </nav>
 
-            <main className="container mx-auto mt-6 grid grid-cols-3 gap-6">
+            <main className="container mx-auto mt-6 grid grid-cols-3 gap-6 p-6">
                 {/* Main content: Appointments table */}
                 <section className="col-span-2">{renderContent()}</section>
                 {/* Sidebar content: Calendar and News */}
-                <aside>
+                {activeTab == "venues" ? <Preference referee_id={refereeProfile.referee_id}/> : 
+                    <aside>
                     <div className="mb-4">
                         <TitleWithBar title="Availability" />
                         <button
@@ -544,9 +550,9 @@ const RefereeManagement = () => {
                         isWidget={true}
                         handleUpdateAvailability={handleUpdateAvailability}
                     />
-                </aside>
+                </aside>}
             </main>
-            <div ref={availabilityRef}>
+            <div ref={availabilityRef} className="p-6">
             <Availability availabilities={availabilities} weekDay={weekDay} getAvailabilityForReferee={getAvailabilityForReferee}/>
             </div>
             {showAvailabilityModal && (
@@ -610,7 +616,6 @@ const RefereeManagement = () => {
                     </div>
                 </div>
             )}
-            <ToastContainer />
         </div>
     );
 };

@@ -13,6 +13,9 @@
 # Local History for Visual Studio Code
 .history/
 
+# Secret key environment files
+.env
+
 # Built Visual Studio Code Extensions
 *.vsix
 

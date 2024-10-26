@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { User } from "lucide-react";
 import axios from "axios"
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 const Profile = () => {
 
@@ -116,7 +116,7 @@ const Profile = () => {
               <div class="md:col-span-1">
                 <label for="age">Age</label>
                 <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
-                    <input type="number" id="age" name="age" onChange={(e) => {setProfile({...profile, zipcode: e.target.value})}} class="block w-full h-10 px-4 border border-gray-300 rounded-md bg-transparent text-gray-700 focus:outline-none focus:ring focus:ring-blue-300 focus:border-blue-300" />
+                    <input type="number" id="age" name="age" onChange={(e) => {setProfile({...profile, age: e.target.value})}} class="block w-full h-10 px-4 border border-gray-300 rounded-md bg-transparent text-gray-700 focus:outline-none focus:ring focus:ring-blue-300 focus:border-blue-300" />
                 </div>
               </div>
 
@@ -144,7 +144,6 @@ const Profile = () => {
           </div>
         </div>
       </div>
-      <ToastContainer />
         </>
     );
 };

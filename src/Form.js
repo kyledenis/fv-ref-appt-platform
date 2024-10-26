@@ -32,7 +32,7 @@ const handleSubmit = (e) => {
         .catch((error) => console.error("Error adding venue:", error));
 };
   return (
-    <div class="grid gap-6 gap-y-3 text-sm grid-cols-1 md:grid-cols-5 m-4">
+    <div class="grid gap-6 gap-y-3 text-sm grid-cols-1 md:grid-cols-5 mt-6">
               <TitleWithBar title="Add new venue" />
               <div class="md:col-span-5 m-2">
                 <label for="full_name">ID</label>
