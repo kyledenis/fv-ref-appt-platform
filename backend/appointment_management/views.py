@@ -714,8 +714,7 @@ class SMS_Receiver(APIView):
 
                         substitute_referees = [] ## list of referees who live in the same postcode as the match venue
                         for x in referee_queryset:
-                            if x.phone_number == "61492934088": ## will only append referees who match venue post code who have my phone number (for testing).
-                                substitute_referees.append(x)
+                            substitute_referees.append(x)
 
                         if len(substitute_referees) == 0:
                             print("Substitute referees is empty. ")
