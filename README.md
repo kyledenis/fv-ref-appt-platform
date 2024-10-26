@@ -80,6 +80,44 @@ The FV Referees department would like to provide a better experience for referee
 
 The backend will be available at `http://localhost:8000`.
 
+## SMS Notifications
+
+1. Install Pyngrok: This is used to host the server that routes incoming SMS messages through the webhook into the application. 
+    ```bash
+   pip install pyngrok
+   ```
+
+2. Install APScheduler: This used to schedule messages to be sent out at 3:00PM each Monday (per the product documents).
+   ```bash
+   pip install APScheduler
+   ```
+
+3. Run Pyngrok: This will start the server.
+    ```bash
+    pyngrok http --url https://fbvsmswebhook.ngrok.app 8000
+    ```
+
+4. Run Django Server
+    ```bash
+    python manage.py runserver
+    ```
+
+Note: The port for the django server and the pyngrok server must be the same. 
+
+# To test it: 
+1. Open message_automator.py and adjust the time and day (I've included a legend in the file) to be a few minutes ahead of the current time, because
+   the messages will be queued to be sent at the time specified in message_automator.py
+
+2. Create a new Referee, and add your phone number as their phone number.
+
+3. Create an Appointment, and add the referee_id of the Referee with your phone number, and set the status to "pending".
+
+4. If the time in message_automator.py is set correctly, the interpreter should say "Message successfully added to queue."
+
+5. You should receive a message within 1-2 minutes of the time message_automator is set to send out the scheduled messages.
+   The message will contain instructions on how to accept/decline appoints. 
+
+
 > Keep terminal open to host backend.
 
 ### Available Scripts
