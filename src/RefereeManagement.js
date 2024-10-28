@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import Header from "./Header"
 import Dashboard from "./Dashboard";
 import Calendar from "./Calendar";
 import Teams from "./Teams";
@@ -8,83 +8,31 @@ import Settings from "./Settings";
 import Venue from "./Venue"; 
 import Relative from "./Relative"; 
 import LoginPage from "./LoginPage";
-import TitleWithBar from "./components/TitleWithBar";
-import TimePicker from "./components/TimePicker";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import axios from "axios";
-import Availability from "./Availability";
+import './App.css'; //add
 
 const RefereeManagement = () => {
     const [activeTab, setActiveTab] = useState("dashboard");
     const [appointment, setAppointments] = useState([]);
     const [selectedDate, setSelectedDate] = useState(null);
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [availableDates, setAvailableDates] = useState([]);
-    const [unavailableDates, setUnavailableDates] = useState([]);
-    const [availabilities, setAvailability] = useState([]);
-    const [isLoggedIn, setIsLoggedIn] = useState(true);
+    // yyyy-mm-dd
+    const [availableDates, setAvailableDates] = useState([
+        "2024-09-07",
+        "2024-09-14",
+        "2024-09-28",
+    ]);
     const [showDropdown, setShowDropdown] = useState(false);
-    const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
-    const [availabilityType, setAvailabilityType] = useState(null);
-    const availabilityRef = useRef(null);
-    const [refereeProfile, setRefereeProfile] = useState({
-        "referee_id": null,
-        "first_name": null,
-        "last_name": null,
-        "gender": null,
-        "date_of_birth": null,
-        "age": null,
-        "location": null,
-        "zipcode": null,
-        "email": null,
-        "phone_number": null,
-        "experience_years": null,
-        "level": null
-    })
-    const [availabilityData, setAvailabilityData] = useState({
-        date: null,
-        day: null,
-        timeType: "entireDay",
-        startTime: null,
-        endTime: null,
-        type: "available",
-        organizations: "all",
-    });
-    const dropdownRef = useRef(null);
-    const modalRef = useRef(null);
+    const dropdownRef = useRef(null);   
+    const handleLogout = () => {
+        setIsLoggedIn(false);
+        setShowDropdown(false);
+    };
 
-    useEffect(() => {
-        getFirstRefereeAndAvailability();
-    }, []);
-
-    useEffect(() => {
-        getAvailabilityForReferee();
-    }, [refereeProfile]);
-
-    useEffect(() => {
-        availabilityRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, [availabilities]);
-
-    const getAvailabilityForReferee = async () => {
-        const availability = await axios.get(`http://localhost:8000/api/availability/?referee=${refereeProfile.referee_id}`);
-        setAvailability(availability.data);
-        console.log(availability.data)
-    }
-    const getFirstRefereeAndAvailability = async () => {
-        const firstReferee = await axios.get("http://localhost:8000/api/referee/1/");
-        setRefereeProfile(firstReferee.data);
-    }
-
-    const weekDay = {
-        "Mon": "Monday",
-        "Tue": "Tuesday",
-        "Wed": "Wednesday",
-        "Thu": "Thursay",
-        "Fri": "Friday",
-        "Sat": "Saturday",
-        "Sun": "Sunday"
-    }
+    const handleLogin = (username) => {
+        setIsLoggedIn(true);
+    };
+    const [isLoggedIn, setIsLoggedIn] = useState(true);
+    // yyyy-mm-dd
     const appointments = [
         {
             id: 1,
@@ -173,245 +121,6 @@ const RefereeManagement = () => {
         };
     }, []);
 
-    const validateField = () => {
-        if (!availabilityData.date && !availabilityData.day) {
-            toast.error("Availability date or weekday must not be empty", {
-                autoClose: 5000,
-                pauseOnHover: true,
-                closeOnClick: true,
-                theme: "dark"
-            });
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
-
-    const handleSubmitAvailability = async () => {
-        if (!validateField()) {
-            return;
-        }
-        const availability = {
-            referee: refereeProfile.referee_id,
-            weekday: availabilityData.day?.slice(0, 3),
-            availableType: availabilityData.type[0].toUpperCase(),
-            start_time: availabilityData.startTime,
-            end_time: availabilityData.endTime,
-            date: availabilityData.date,
-        }
-        if (availability.date || availability.weekday) {
-            const loading = toast.loading("Please wait...");
-            const response = await axios.post("http://localhost:8000/api/availability/", availability);
-            console.log(response);
-            if (response.status == 201) {
-                toast.update(loading, {render: "Submited Successfully", type: "success", isLoading: false, autoClose: 5000, hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    theme: "dark"
-                });
-                getAvailabilityForReferee();
-            }
-            else {
-                toast.update(loading, {render: "Something went wrong", type: "error", isLoading: false });
-            }
-        }
-        //reset availabilityData
-        setAvailabilityData({
-            date: null,
-            day: null,
-            timeType: "entireDay",
-            startTime: null,
-            endTime: null,
-            type: "available",
-            organizations: "all",
-        })
-
-    }
-
-    const handleUpdateAvailability = () => {
-        setShowAvailabilityModal(true);
-    };
-
-    const handleAvailabilityTypeSelect = (type) => {
-        setAvailabilityType(type);
-    };
-
-    const handleAvailabilitySubmit = () => {
-        if (availabilityType === "specific" && availabilityData.date) {
-            const dateString = availabilityData.date;
-            
-            if (availabilityData.type === "available") {
-                setAvailableDates([dateString]);
-                setUnavailableDates((prev) =>
-                    prev.filter((date) => date !== dateString),
-                );
-            } else {
-                setUnavailableDates([dateString]);
-                setAvailableDates((prev) =>
-                    prev.filter((date) => date !== dateString),
-                );
-            }
-        } else if (availabilityType === "general") {
-            // TODO: Implement general availability logic
-            console.log("General availability updated:", availabilityData);
-        }
-
-        validateField();
-        setShowAvailabilityModal(false);
-        setAvailabilityType(null);
-
-    };
-
-    const renderAvailabilityForm = () => {
-        return (
-            <div>
-                <h4 className="font-semibold mb-2">
-                    {availabilityType === "general"
-                        ? "Add General Availability"
-                        : "Add Specific Availability"}
-                </h4>
-                {availabilityType === "specific" ? (
-                    <div className="mb-4">
-                        <label className="block mb-1">
-                            Date you are specifically available
-                        </label>
-                        <input
-                            type="date"
-                            className="w-full p-2 border rounded"
-                            value={availabilityData.date || ""}
-                            onChange={(e) =>
-                                setAvailabilityData({
-                                    ...availabilityData,
-                                    date: e.target.value,
-                                })
-                            }
-                        />
-                    </div>
-                ) : (
-                    <div className="mb-4">
-                        <label className="block mb-1">
-                            Day you are generally available
-                        </label>
-                        <select
-                            className="w-full p-2 border rounded"
-                            value={availabilityData.day || ""}
-                            onChange={(e) =>
-                                setAvailabilityData({
-                                    ...availabilityData,
-                                    day: e.target.value,
-                                })
-                            }
-                        >
-                            <option value="">Select a day</option>
-                            <option value="Monday">Monday</option>
-                            <option value="Tuesday">Tuesday</option>
-                            <option value="Wednesday">Wednesday</option>
-                            <option value="Thursday">Thursday</option>
-                            <option value="Friday">Friday</option>
-                            <option value="Saturday">Saturday</option>
-                            <option value="Sunday">Sunday</option>
-                        </select>
-                    </div>
-                )}
-                <div className="mb-4">
-                    <label className="block mb-1">Time you are available</label>
-                    <select
-                        className="w-full p-2 border rounded mb-2"
-                        value={availabilityData.timeType}
-                        onChange={(e) =>
-                            setAvailabilityData({
-                                ...availabilityData,
-                                timeType: e.target.value,
-                            })
-                        }
-                    >
-                        <option value="entireDay">For the entire day</option>
-                        <option value="from">From</option>
-                        <option value="until">Anytime until</option>
-                    </select>
-                    {availabilityData.timeType !== "entireDay" && (
-                        <TimePicker
-                            value={
-                                availabilityData.timeType === "from"
-                                    ? availabilityData.startTime
-                                    : availabilityData.endTime
-                            }
-                            onChange={(time) =>
-                                setAvailabilityData({
-                                    ...availabilityData,
-                                    [availabilityData.timeType === "from"
-                                        ? "startTime"
-                                        : "endTime"]: time,
-                                })
-                            }
-                        />
-                    )}
-                </div>
-                <div className="mb-4">
-                    <label className="block mb-1">Type of availability</label>
-                    <select
-                        className="w-full p-2 border rounded"
-                        value={availabilityData.type}
-                        onChange={(e) =>
-                            setAvailabilityData({
-                                ...availabilityData,
-                                type: e.target.value,
-                            })
-                        }
-                    >
-                        <option value="available">Available</option>
-                        <option value="unavailable">Unavailable</option>
-                    </select>
-                </div>
-                <div className="mb-4">
-                    <label className="block mb-1">
-                        Where you are available
-                    </label>
-                    <div>
-                        <label className="inline-flex items-center mr-4">
-                            <input
-                                type="radio"
-                                className="form-radio"
-                                name="organizations"
-                                value="all"
-                                checked={
-                                    availabilityData.organizations === "all"
-                                }
-                                onChange={(e) =>
-                                    setAvailabilityData({
-                                        ...availabilityData,
-                                        organizations: e.target.value,
-                                    })
-                                }
-                            />
-                            <span className="ml-2">All organisations</span>
-                        </label>
-                        <label className="inline-flex items-center">
-                            <input
-                                type="radio"
-                                className="form-radio"
-                                name="organizations"
-                                value="selected"
-                                checked={
-                                    availabilityData.organizations ===
-                                    "selected"
-                                }
-                                onChange={(e) =>
-                                    setAvailabilityData({
-                                        ...availabilityData,
-                                        organizations: e.target.value,
-                                    })
-                                }
-                            />
-                            <span className="ml-2">Selected organisations</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
     const renderContent = () => {
         switch (activeTab) {
             case "dashboard":
@@ -454,44 +163,7 @@ const RefereeManagement = () => {
 
     return (
         <div className="bg-fvBackground min-h-screen">
-            <header className="bg-fvTopHeader text-white p-2">
-                <div className="container mx-auto flex justify-between items-center">
-                    <h1 className="text-s font-bold">
-                        Referee Management Platform
-                    </h1>
-                </div>
-            </header>
-
-            <div className="bg-fvMiddleHeader text-white p-4">
-                <div className="container mx-auto flex justify-between items-center">
-                    <div className="flex items-center">
-                        <img
-                            src="/fv-logo-transparent.png"
-                            alt="Football Victoria"
-                            className="h-16"
-                        />
-                    </div>
-                    <div className="relative" ref={dropdownRef}>
-                        <button
-                            className="bg-blue-700 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-                            onClick={() => setShowDropdown(!showDropdown)}
-                        >
-                            Logged in as {refereeProfile.first_name + " " + refereeProfile.last_name}
-                        </button>
-                        {showDropdown && (
-                            <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-md shadow-xl z-20">
-                                <button
-                                    className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white"
-                                    onClick={handleLogout}
-                                >
-                                    Logout
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
+            <Header dropdownRef={dropdownRef} setShowDropdown={setShowDropdown} showDropdown={showDropdown} handleLogout={handleLogout}></Header>
             <nav className="bg-fvBottomHeader text-white">
                 <div className="container mx-auto flex justify-center">
                     {[
@@ -507,7 +179,7 @@ const RefereeManagement = () => {
                             key={item}
                             className={`py-2 px-4 ${
                                 activeTab === item.toLowerCase()
-                                    ? "underline"
+                                    ? "currentActive"
                                     : ""
                             }`}
                             onClick={() => setActiveTab(item.toLowerCase())}

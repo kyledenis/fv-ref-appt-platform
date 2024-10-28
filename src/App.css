@@ -36,18 +36,204 @@
     transform: rotate(360deg);
   }
 }
-/*sizing of map container*/ 
-.leaflet-container {
-  height: 100vh;
+/*sticky middle and bottom header*/
+.bg-fvMiddleHeader {
+  position: sticky;
+  top: 0; /* Stick to the top of the container */
+  width: 100%;
+  height: 100px; /* Set a fixed height for the middle header */
+  background-color: #f8f9fa; /* Optional: Add background color */
 }
 
-.cluster-icon {
-  height: 3rem;
-  width: 3rem;
-  border-radius: 50%;
-  background-color:red;
-  transform: translate(-25%, -25%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.bg-fvBottomHeader {
+  position: sticky;
+  top:calc(100px);
+  bottom: 0; /* Stick to the bottom of the container */
+  width: 100%;
+}
+
+/*adding underline effect for navigation*/
+@keyframes underline-expand {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+nav button{
+  color: rgb(255, 255, 255);
+  text-decoration:none;
+  position: relative;
+  padding:5px;
+}
+nav button::after{
+  content:'';
+  position: absolute;
+  width: 0%;
+  height: 4px;
+  bottom: 0;
+  left:0px;
+  background-color: #ffff00;
+  transition: 0.3s ease-in-out;
+}
+
+nav button:hover,
+.currentActive{
+  color:#ffff00;
+  text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+  transition: 0.3s ease;
+}
+nav button:hover::after,
+.currentActive::after{
+  width: 100%;
+}
+/* adding overhead blue line for title of each page */
+.title{
+  position:relative;
+}
+.title::after{
+  content:'';
+  position: absolute;
+  width: 25%;
+  height: 4px;
+  top: 0;
+  left:0px;
+  background-color: rgb(15 0 125);
+}
+
+
+/* status on information card */
+.status-Red{
+  color: red;
+}
+.status-Green{
+  color: #008000;
+}
+.status-Yellow{
+  color: #c7ba00;
+}
+.status-White{
+  border: #cacaca ;
+}
+.bg-Red{
+  background-color: #ffd7d5;
+  border: 2px solid red;
+}
+.bg-Yellow{
+  background-color: #ffffe4;
+  border: 2px solid rgb(242, 255, 0);
+}
+.bg-Green{
+  background-color: #cfffd6;
+  border: 2px solid rgb(0, 255, 17);
+}
+.bg-White{
+  border: 2px solid rgb(167, 167, 167);
+}
+/* Information card */
+#InformationCard {
+  padding: 20px;
+  margin: 20px;
+  transition: transform 0.25s ease-in-out, opacity 0.25s ease-in-out;
+}
+
+/* Hover effects */
+#InformationCard:hover{
+  box-shadow: 0 5px 8px 2px #5c5c5c;
+  transform: scale(1.05);
+  opacity:0.9;
+  transition:0.25s ease-in-out;
+  cursor: pointer;
+}
+
+/* No hover effects within Match tab */
+#InformationCard.no-hover:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);/* in tailwinds it means shadow-lg */
+  transform: none;
+  opacity: 1;
+  transition:none;
+  cursor: default;
+}
+
+/* Highlight effect for selected card */
+.highlight-effect {
+  animation: highlight 1s ease-in-out;
+}
+
+/* define animation */
+@keyframes highlight {
+  0% {
+    box-shadow: 0 0 10px 5px rgba(255, 255, 0, 0.5);
+  }
+  100% {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* in tailwinds it means shadow-lg */
+  }
+}
+
+/* icons */
+.icon{
+  font-size: 1.2rem;
+  transition:0.25s ease-in-out;
+}
+.iconButton:hover{
+  cursor: pointer;  
+}
+.trash-can-icon:hover{
+  color: #ff0c0c;
+  transition:0.25s ease-in-out;
+}
+
+.ellipsis-icon:hover{
+  color:#0055ff;
+  transition:0.25s ease-in-out;
+}
+
+.edit-icon:hover{
+  color:rgb(0, 172, 0);
+  transition:0.25s ease-in-out;
+}
+
+/* referee cards */
+
+.refereeCard{
+  padding: 20px;
+  margin: 20px;
+  border: 2px solid rgb(167, 167, 167);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+/* filter buttons */
+.universalButton{
+  padding: 4px;
+  border: 2px solid rgb(167, 167, 167);
+}
+
+/* styles.css */
+.scrollable-container {
+    overflow-y: scroll; /* Always show vertical scrollbar */
+    height: 100vh; /* Full viewport height */
+}
+
+/* table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #f2f2f2;
+  position: sticky;
+  top: 0;
+  z-index: 1; /* Ensure headers stay on top */
+}
+
+tr:hover {
+  background-color: #f5f5f5;
 }

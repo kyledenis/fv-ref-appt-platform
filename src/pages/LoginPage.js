@@ -1,23 +1,14 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAppContext } from "../contexts/AppContext";
 
-const LoginPage = () => {
-    const [credentials, setCredentials] = useState({
-        username: "",
-        password: "",
-    });
-    const [error, setError] = useState("");
-    const { login } = useAppContext();
-    const navigate = useNavigate();
+const LoginPage = ({ onLogin }) => {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setCredentials({ ...credentials, [name]: value });
-    };
+    //create a demo tick box to Referee page
+    const [isAdmin, setIsAdmin] = useState("false");
+    
 
-    // ?: Temporary mock login.
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         setError("");
 
