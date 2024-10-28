@@ -95,6 +95,17 @@ const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">
+                            ID
+                        </label>
+                        <input
+                            type="text"
+                            value={profile.referee_id || ""}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">
                             First Name
                         </label>
                         <input
@@ -109,7 +120,6 @@ const Profile = () => {
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                         />
                     </div>
-
                     <div>
                         <label className="block text-sm font-medium text-gray-700">
                             Last Name
@@ -121,6 +131,40 @@ const Profile = () => {
                                 setProfile({
                                     ...profile,
                                     last_name: e.target.value,
+                                })
+                            }
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                            Age
+                        </label>
+                        <input
+                            type="text"
+                            value={profile.age || ""}
+                            onChange={(e) =>
+                                setProfile({
+                                    ...profile,
+                                    age: e.target.value,
+                                })
+                            }
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                            Level
+                        </label>
+                        <input
+                            type="text"
+                            value={profile.level || ""}
+                            onChange={(e) =>
+                                setProfile({
+                                    ...profile,
+                                    level: e.target.value,
                                 })
                             }
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -172,6 +216,23 @@ const Profile = () => {
                                 setProfile({
                                     ...profile,
                                     location: e.target.value,
+                                })
+                            }
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                            Zip Code
+                        </label>
+                        <input
+                            type="text"
+                            value={profile.zip_code || ""}
+                            onChange={(e) =>
+                                setProfile({
+                                    ...profile,
+                                    zip_code: e.target.value,
                                 })
                             }
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"

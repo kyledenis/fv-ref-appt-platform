@@ -351,6 +351,18 @@ class RefereeViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+        def update(self, request, *args, **kwargs):
+
+            referee_id = kwargs.get('pk')
+            try:
+                instance = Referee.objects.get(id=referee_id)
+            except Referee.DoesNotExist:
+                return Response({"error": "Referee not found."}, status=404)
+
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response(serializer.data)
 class AppointmentPagination(PageNumberPagination):
     page_size = 50
     page_size_query_param = 'page_size'
@@ -494,7 +506,7 @@ class AvailabilityViewSet(viewsets.ModelViewSet):
 
         referee_id = data.get('referee')
         date = data.get('date')
-        is_available = data.get('isAvailable')
+        available_type = data.get('availableType')
         is_general = data.get('isGeneral')
 
         # Validate required fields
@@ -510,21 +522,21 @@ class AvailabilityViewSet(viewsets.ModelViewSet):
                 'received_data': data
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        if is_available is None:  # explicitly check for None as False is valid
+        if available_type not in ['A', 'U']:  # explicitly check for None as False is valid
             return Response({
-                'error': 'isAvailable is required',
+                'error': 'availableType must be "A" or "U"',
                 'received_data': data
             }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            availability_type = 'A' if is_available else 'U'
+            is_available = available_type == 'A'
 
             # Create or update availability
             availability, created = Availability.objects.update_or_create(
                 referee_id=referee_id,
                 date=date,
                 defaults={
-                    'availableType': availability_type,
+                    'availableType': available_type,
                     'weekday': datetime.strptime(date, '%Y-%m-%d').strftime('%a') if not is_general else None,
                 }
             )

@@ -14,16 +14,17 @@ const AvailabilityModal = ({ isOpen, onClose }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        const availableType = isAvailable ? "A" : "U";
         if (availabilityType === "specific") {
-            updateAvailability(specificDate, isAvailable, false);
+            updateAvailability(specificDate, availableType, false);
         } else {
             updateAvailability(
                 {
                     startDate: generalStartDate,
                     endDate: generalEndDate,
                     days: selectedDays,
+                    availableType: availableType,
                 },
-                isAvailable,
                 true,
             );
         }

@@ -188,13 +188,13 @@ export const AppProvider = ({ children }) => {
         try {
             const data = {
                 date,
-                isAvailable,
+                availableType: isAvailable ? 'A' : 'U',
                 isGeneral,
-                refereeId: user.id,
+                refereeId: user.email,
             };
 
             const response = await availabilityService.updateAvailability(
-                user.id,
+                user.email,
                 data,
             );
             setAvailableDates(response.data.availableDates);

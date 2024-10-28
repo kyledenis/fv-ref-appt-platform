@@ -174,7 +174,7 @@ const App = () => {
                     )}
                 </Routes>
             </div>
-        </Router>
+        </ErrorBoundary>
     );
 };
 
