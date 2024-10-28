@@ -1,26 +1,37 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import {
-    mockUser,
-    mockAppointments,
-    mockAvailableDates,
-    mockUnavailableDates,
-    mockTeams,
-    mockVenues,
-    mockReferees,
-} from "../mockData";
-import geocodeReferees from "../utils/geocodeReferees";
+    authService,
+    refereeService,
+    appointmentService,
+    availabilityService,
+    venueService,
+    teamService,
+} from "../services/api";
+import {
+    getGoogleMaps,
+    isGoogleMapsLoaded,
+} from "../utils/loadGoogleMapsScript";
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
+    // Core state
     const [user, setUser] = useState(null);
-    const [appointments, setAppointments] = useState([]);
-    const [availableDates, setAvailableDates] = useState([]);
-    const [unavailableDates, setUnavailableDates] = useState([]);
     const [venues, setVenues] = useState([]);
     const [teams, setTeams] = useState([]);
     const [referees, setReferees] = useState([]);
     const [filteredReferees, setFilteredReferees] = useState([]);
+    const [appointments, setAppointments] = useState([]);
+    const [availableDates, setAvailableDates] = useState([]);
+    const [unavailableDates, setUnavailableDates] = useState([]);
+
+    // UI state
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+
+    // Filter state
     const [filters, setFilters] = useState({
         availability: false,
         level: "",
@@ -28,213 +39,291 @@ export const AppProvider = ({ children }) => {
         minExperience: "",
         qualification: "",
         distance: 50,
+        location: null,
     });
-    
-    useEffect(() => {
-        setUser(mockUser);
-        setAppointments(mockAppointments);
-        setAvailableDates(mockAvailableDates);
-        setUnavailableDates(mockUnavailableDates);
-        setTeams(mockTeams);
-        setReferees(mockReferees);
-        setVenues(
-            mockVenues.map((venue) => ({
-                ...venue,
-                location: venue.location
-                    ? {
-                          lat: parseFloat(venue.location.lat),
-                          lng: parseFloat(venue.location.lng),
-                      }
-                    : null,
-            })),
-        );
 
-        // Geocode referee addresses and update state
-        const initReferees = async () => {
+    // Initialize Google Maps
+    useEffect(() => {
+        const initGoogleMaps = async () => {
             try {
-                const geocodedReferees = await geocodeReferees(mockReferees);
-                console.log("Geocoded Referees:", geocodedReferees);
-                setReferees(geocodedReferees);
+                if (!isGoogleMapsLoaded()) {
+                    const script = document.createElement("script");
+                    const API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+
+                    if (!API_KEY) {
+                        throw new Error(
+                            "Google Maps API key is not configured",
+                        );
+                    }
+
+                    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
+                    script.async = true;
+                    script.defer = true;
+
+                    await new Promise((resolve, reject) => {
+                        script.addEventListener("load", resolve);
+                        script.addEventListener("error", reject);
+                        document.head.appendChild(script);
+                    });
+                }
+                setGoogleMapsLoaded(true);
             } catch (error) {
-                console.error("Error initializing referees:", error);
-                
+                console.error("Error loading Google Maps:", error);
+                setError("Failed to load mapping services");
             }
         };
-        initReferees();
+
+        initGoogleMaps();
     }, []);
 
-    const updateAppointment = (id, updates) => {
-        setAppointments((prevAppointments) =>
-            prevAppointments.map((appointment) =>
-                appointment.id === id
-                    ? { ...appointment, ...updates }
-                    : appointment,
-            ),
-        );
-    };
-    const login = (userData) => {
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
-    };
-
-    const logout = () => {
-        setUser(null);
-        localStorage.removeItem("user");
-    };
-
-    const fetchAppointments = () => {
-        // TODO: Fetch appointments from an API
-        return Promise.resolve(mockAppointments);
-    };
-
-    const updateAvailability = (date, isAvailable, isGeneral, time) => {
-        if (isGeneral) {
-            const { startDate, endDate, days } = date;
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            const newAvailableDates = new Set(availableDates);
-            const newUnavailableDates = new Set(unavailableDates);
-
-            for (
-                let d = new Date(start);
-                d <= end;
-                d.setDate(d.getDate() + 1)
-            ) {
-                // Get day index (0-6), where 0 is Monday and 6 is Sunday
-                const dayIndex = (d.getDay() + 6) % 7;
-
-                if (days.includes(dayIndex)) {
-                    const dateString = d.toISOString().split("T")[0];
-                    if (isAvailable) {
-                        newAvailableDates.add(dateString);
-                        newUnavailableDates.delete(dateString);
-                    } else {
-                        newUnavailableDates.add(dateString);
-                        newAvailableDates.delete(dateString);
-                    }
+    // Check for existing authentication
+    useEffect(() => {
+        const checkAuth = async () => {
+            const token = localStorage.getItem("authToken");
+            if (token) {
+                try {
+                    const response = await authService.getCurrentUser();
+                    setUser(response.data);
+                    await fetchAllData();
+                } catch (error) {
+                    localStorage.removeItem("authToken");
+                    setError("Authentication expired. Please log in again.");
                 }
             }
+            setLoading(false);
+        };
+        checkAuth();
+    }, []);
 
-            setAvailableDates(Array.from(newAvailableDates));
-            setUnavailableDates(Array.from(newUnavailableDates));
-        } else {
-            const dateObject = new Date(date);
-            const correctedDate = dateObject.toISOString().split("T")[0];
+    // Fetch all necessary data
+    const fetchAllData = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const [appointmentsRes, venuesRes, teamsRes, refereesRes] =
+                await Promise.all([
+                    appointmentService.getAllAppointments(),
+                    venueService.getAllVenues(),
+                    teamService.getAllTeams(),
+                    refereeService.getAllReferees(),
+                ]);
 
-            if (isAvailable) {
-                setAvailableDates((prev) => [
-                    ...new Set([...prev, correctedDate]),
+            setAppointments(appointmentsRes.data);
+            setVenues(venuesRes.data);
+            setTeams(teamsRes.data);
+            setReferees(refereesRes.data);
+
+            if (user?.id) {
+                const [availableRes, unavailableRes] = await Promise.all([
+                    availabilityService.getAvailableDates(user.id),
+                    availabilityService.getUnavailableDates(user.id),
                 ]);
-                setUnavailableDates((prev) =>
-                    prev.filter((d) => d !== correctedDate),
-                );
-            } else {
-                setUnavailableDates((prev) => [
-                    ...new Set([...prev, correctedDate]),
-                ]);
-                setAvailableDates((prev) =>
-                    prev.filter((d) => d !== correctedDate),
-                );
+                setAvailableDates(availableRes.data);
+                setUnavailableDates(unavailableRes.data);
             }
+        } catch (error) {
+            setError("Failed to fetch data. Please try again.");
+            console.error("Error fetching data:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const updateUserSettings = (userId, newSettings) => {
-        setUser((prev) => ({
-            ...prev,
-            settings: {
-                ...prev.settings,
-                ...newSettings,
-            },
-        }));
+    // Authentication methods
+    const login = async (userData) => {
+        try {
+            setUser(userData);
+            return userData;
+        } catch (error) {
+            console.error("Login error:", error);
+            throw error;
+        }
     };
 
-    const addVenue = (newVenue) => {
-        setVenues((prevVenues) => [
-            ...prevVenues,
-            { ...newVenue, id: Date.now() },
-        ]);
+    const logout = async () => {
+        setLoading(true);
+        try {
+            await authService.logout();
+        } catch (error) {
+            console.error("Logout error:", error);
+        } finally {
+            localStorage.removeItem("authToken");
+            setUser(null);
+            setAppointments([]);
+            setAvailableDates([]);
+            setUnavailableDates([]);
+            setVenues([]);
+            setTeams([]);
+            setReferees([]);
+            setFilteredReferees([]);
+            setLoading(false);
+        }
+    };
+
+    // Appointment methods
+    const updateAppointment = async (id, updates) => {
+        setLoading(true);
+        try {
+            const response = await appointmentService.updateAppointment(
+                id,
+                updates,
+            );
+            setAppointments((prev) =>
+                prev.map((appointment) =>
+                    appointment.id === id ? response.data : appointment,
+                ),
+            );
+            return response.data;
+        } catch (error) {
+            setError("Failed to update appointment");
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Availability methods
+    const updateAvailability = async (date, isAvailable, isGeneral) => {
+        setLoading(true);
+        try {
+            const data = {
+                date,
+                isAvailable,
+                isGeneral,
+                refereeId: user.id,
+            };
+
+            const response = await availabilityService.updateAvailability(
+                user.id,
+                data,
+            );
+            setAvailableDates(response.data.availableDates);
+            setUnavailableDates(response.data.unavailableDates);
+
+            return response.data;
+        } catch (error) {
+            setError("Failed to update availability");
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Referee filtering methods
+    const applyFilters = async () => {
+        setLoading(true);
+        try {
+            const response = await refereeService.getRefereesByFilters(filters);
+            setFilteredReferees(response.data);
+        } catch (error) {
+            setError("Failed to apply filters");
+            console.error("Error applying filters:", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const updateFilters = (newFilters) => {
         setFilters(newFilters);
+        applyFilters();
     };
 
-    const applyFilters = () => {
-        const filtered = referees.filter((referee) => {
-            const isAvailable = !filters.availability || referee.isAvailable;
-            const meetsLevelRequirement =
-                !filters.level || referee.level === filters.level;
-            const meetsAgeRequirement =
-                !filters.minAge || referee.age >= filters.minAge;
-            const meetsExperienceRequirement =
-                !filters.minExperience ||
-                referee.experienceYears >= filters.minExperience;
-            const hasRequiredQualification =
-                !filters.qualification ||
-                referee.qualifications.includes(filters.qualification);
-            const withinDistance =
-                !filters.distance ||
-                calculateDistance(referee.location, {
-                    lat: -37.8136,
-                    lng: 144.9631,
-                }) <= filters.distance;
+    // Venue methods
+    const addVenue = async (venueData) => {
+        setLoading(true);
+        try {
+            const response = await venueService.createVenue(venueData);
+            setVenues((prev) => [...prev, response.data]);
+            return response.data;
+        } catch (error) {
+            setError("Failed to add venue");
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
 
-            return (
-                isAvailable &&
-                meetsLevelRequirement &&
-                meetsAgeRequirement &&
-                meetsExperienceRequirement &&
-                hasRequiredQualification &&
-                withinDistance
+    // User settings methods
+    const updateUserSettings = async (userId, settings) => {
+        setLoading(true);
+        try {
+            const response = await refereeService.updateRefereeProfile(
+                userId,
+                settings,
             );
-        });
-
-        setFilteredReferees(filtered);
+            setUser((prev) => ({ ...prev, settings: response.data.settings }));
+            return response.data;
+        } catch (error) {
+            setError("Failed to update settings");
+            throw error;
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const calculateDistance = (point1, point2) => {
-        const R = 6371; // Radius of the Earth in km
-        const dLat = ((point2.lat - point1.lat) * Math.PI) / 180;
-        const dLon = ((point2.lng - point1.lng) * Math.PI) / 180;
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos((point1.lat * Math.PI) / 180) *
-                Math.cos((point2.lat * Math.PI) / 180) *
-                Math.sin(dLon / 2) *
-                Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c; // Distance in km
+    // Notification methods
+    const addNotification = (notification) => {
+        setNotifications((prev) => [
+            ...prev,
+            { id: Date.now(), ...notification },
+        ]);
+    };
+
+    const removeNotification = (id) => {
+        setNotifications((prev) =>
+            prev.filter((notification) => notification.id !== id),
+        );
+    };
+
+    // Clear errors
+    const clearError = () => {
+        setError(null);
+    };
+
+    const contextValue = {
+        // State
+        user,
+        appointments,
+        availableDates,
+        unavailableDates,
+        venues,
+        teams,
+        referees,
+        filteredReferees,
+        loading,
+        error,
+        filters,
+        googleMapsLoaded,
+        notifications,
+
+        // Methods
+        login,
+        logout,
+        updateAppointment,
+        updateAvailability,
+        updateFilters,
+        applyFilters,
+        addVenue,
+        updateUserSettings,
+        addNotification,
+        removeNotification,
+        clearError,
+        refreshData: fetchAllData,
     };
 
     return (
-        <AppContext.Provider
-            value={{
-                user,
-                teams,
-                login,
-                logout,
-                appointments,
-                availableDates,
-                unavailableDates,
-                updateAppointment,
-                fetchAppointments,
-                updateAvailability,
-                updateUserSettings,
-                venues,
-                addVenue,
-                referees,
-                filteredReferees,
-                filters,
-                updateFilters,
-                applyFilters,
-            }}
-        >
+        <AppContext.Provider value={contextValue}>
             {children}
         </AppContext.Provider>
     );
 };
 
-export const useAppContext = () => useContext(AppContext);
+export const useAppContext = () => {
+    const context = useContext(AppContext);
+    if (!context) {
+        throw new Error("useAppContext must be used within an AppProvider");
+    }
+    return context;
+};
 
 export default AppContext;

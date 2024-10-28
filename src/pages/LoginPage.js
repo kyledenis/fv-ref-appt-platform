@@ -1,43 +1,53 @@
 import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAppContext } from "../contexts/AppContext";
+import { authService } from "../services/api";
+import { toast } from "react-toastify";
+import Button from "../components/Button";
 
-const LoginPage = ({ onLogin }) => {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
+const LoginPage = () => {
+    const [credentials, setCredentials] = useState({
+        username: "",
+        password: "",
+    });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const { login } = useAppContext();
+    const navigate = useNavigate();
 
-    //create a demo tick box to Referee page
-    const [isAdmin, setIsAdmin] = useState("false");
-    
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setCredentials((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         setError("");
 
         try {
-            // TODO: Replace with actual login logic via API.
-            if (
-                credentials.username === "admin" &&
-                credentials.password === "password"
-            ) {
-                const mockUserData = {
-                    id: 1,
-                    username: "admin",
-                    firstName: "Admin",
-                    lastName: "User",
-                    email: "admin@example.com",
-                };
-                await login(mockUserData);
-                navigate("/");
-            } else {
-                setError("Invalid username or password");
-            }
+            const response = await authService.login(credentials);
+            const { token, user } = response.data;
+
+            localStorage.setItem("authToken", token);
+            await login(user);
+
+            toast.success("Successfully logged in");
+            navigate("/");
         } catch (error) {
-            setError("An error occurred during login. Please try again.");
-            console.error("Login error:", error);
+            const errorMessage = error.response?.data?.error || "Login failed";
+            setError(errorMessage);
+            toast.error(errorMessage);
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen flex items-center justify-center bg-fvBackground py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8">
                 <div>
                     <img
@@ -49,8 +59,14 @@ const LoginPage = ({ onLogin }) => {
                         Sign in to your account
                     </h2>
                 </div>
+
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                    <input type="hidden" name="remember" value="true" />
+                    {error && (
+                        <div className="rounded-md bg-red-50 p-4">
+                            <div className="text-sm text-red-700">{error}</div>
+                        </div>
+                    )}
+
                     <div className="rounded-md shadow-sm -space-y-px">
                         <div>
                             <label htmlFor="username" className="sr-only">
@@ -65,6 +81,7 @@ const LoginPage = ({ onLogin }) => {
                                 placeholder="Username"
                                 value={credentials.username}
                                 onChange={handleChange}
+                                disabled={loading}
                             />
                         </div>
                         <div>
@@ -80,25 +97,44 @@ const LoginPage = ({ onLogin }) => {
                                 placeholder="Password"
                                 value={credentials.password}
                                 onChange={handleChange}
+                                disabled={loading}
                             />
                         </div>
                     </div>
 
-                    {error && (
-                        <p className="text-red-500 text-sm text-center">
-                            {error}
-                        </p>
-                    )}
+                    <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                            <Link
+                                to="/reset-password"
+                                className="font-medium text-blue-600 hover:text-blue-500"
+                            >
+                                Forgot your password?
+                            </Link>
+                        </div>
+                    </div>
 
                     <div>
-                        <button
+                        <Button
                             type="submit"
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            disabled={loading}
+                            className="w-full"
                         >
-                            Sign in
-                        </button>
+                            {loading ? "Signing in..." : "Sign in"}
+                        </Button>
                     </div>
                 </form>
+
+                <div className="text-center">
+                    <p className="text-sm text-gray-600">
+                        Don't have an account?{" "}
+                        <Link
+                            to="/register"
+                            className="font-medium text-blue-600 hover:text-blue-500"
+                        >
+                            Register now
+                        </Link>
+                    </p>
+                </div>
             </div>
         </div>
     );

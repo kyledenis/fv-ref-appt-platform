@@ -196,8 +196,10 @@ The backend will be available at [localhost:8000](http://localhost:8000).
 
 - `src/`: React application source code
   - `components/`: Reusable UI components
-  - `pages/`: Main page components
   - `contexts/`: React Context for state management
+  - `hoc/`: Higher-order components
+  - `hooks/`: Custom React hooks
+  - `pages/`: Main page components
   - `services/`: API service for backend communication
   - `utils/`: Utility functions
 - `server.js`: Express server for proxying Google Maps API requests

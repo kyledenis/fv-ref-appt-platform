@@ -6,17 +6,33 @@ const Popup = ({ isOpen, onClose, title, children }) => {
 
     useEffect(() => {
         const handleClickOutside = (event) => {
+            // Don't close if clicking within a Google Maps autocomplete dropdown
+            if (event.target.closest(".pac-container")) {
+                return;
+            }
+
             if (modalRef.current && !modalRef.current.contains(event.target)) {
+                onClose();
+            }
+        };
+
+        const handleEscapeKey = (event) => {
+            if (event.key === "Escape") {
                 onClose();
             }
         };
 
         if (isOpen) {
             document.addEventListener("mousedown", handleClickOutside);
+            document.addEventListener("keydown", handleEscapeKey);
+            // Prevent body scrolling when modal is open
+            document.body.style.overflow = "hidden";
         }
 
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleEscapeKey);
+            document.body.style.overflow = "unset";
         };
     }, [isOpen, onClose]);
 

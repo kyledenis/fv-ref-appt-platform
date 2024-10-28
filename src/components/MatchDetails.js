@@ -2,171 +2,229 @@ import React, { useState, useEffect } from "react";
 import { useAppContext } from "../contexts/AppContext";
 import Button from "./Button";
 import Popup from "./Popup";
-import { loadGoogleMapsScript } from "../utils/loadGoogleMapsScript";
+import { Map } from "lucide-react";
+import { appointmentService } from "../services/api";
+import { toast } from "react-toastify";
+import withAsyncState from "../hoc/withAsyncState";
+import LoadingSpinner from "./LoadingSpinner";
+import {
+    getGoogleMaps,
+    isGoogleMapsLoaded,
+} from "../utils/loadGoogleMapsScript";
 
 const MatchDetails = ({ match, isOpen, onClose }) => {
-    const { updateAppointment } = useAppContext();
-    const [status, setStatus] = useState(match.status);
-    const [declineReason, setDeclineReason] = useState("");
+    const [matchDetails, setMatchDetails] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [updating, setUpdating] = useState(false);
     const [showDeclineForm, setShowDeclineForm] = useState(false);
-    const [map, setMap] = useState(null);
+    const [declineReason, setDeclineReason] = useState("");
     const [mapError, setMapError] = useState(null);
-    const [mapCenter, setMapCenter] = useState({
-        lat: -37.8136,
-        lng: 144.9631,
-    }); // Default to Melbourne
+    const [map, setMap] = useState(null);
 
     useEffect(() => {
-        if (isOpen && match.venue) {
-            loadGoogleMapsScript()
-                .then((google) => {
-                    const geocoder = new google.maps.Geocoder();
-                    geocoder.geocode(
-                        { address: match.venue + ", Victoria, Australia" },
-                        (results, status) => {
-                            if (status === "OK" && results[0]) {
-                                const location = results[0].geometry.location;
-                                const newCenter = {
-                                    lat: location.lat(),
-                                    lng: location.lng(),
-                                };
-                                setMapCenter(newCenter);
-                                if (map) {
-                                    map.setCenter(newCenter);
-                                    new google.maps.Marker({
-                                        map: map,
-                                        position: newCenter,
-                                    });
-                                }
-                            } else {
-                                console.error(
-                                    "Geocode was not successful for the following reason: " +
-                                        status,
-                                );
-                                setMapError(
-                                    "Failed to locate the venue. Showing default location.",
-                                );
-                            }
-                        },
-                    );
+        if (isOpen && match?.id) {
+            fetchMatchDetails();
+            initializeMap();
+        }
+    }, [isOpen, match?.id]);
 
-                    if (!map) {
-                        const newMap = new google.maps.Map(
+    const fetchMatchDetails = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await appointmentService.getAppointment(match.id);
+            setMatchDetails(response.data);
+        } catch (err) {
+            setError(
+                err.response?.data?.message || "Failed to fetch match details",
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const initializeMap = async () => {
+        try {
+            if (!isGoogleMapsLoaded()) {
+                const script = document.createElement("script");
+                const API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+
+                if (!API_KEY) {
+                    throw new Error("Google Maps API key is not configured");
+                }
+
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
+                script.async = true;
+                script.defer = true;
+
+                await new Promise((resolve, reject) => {
+                    script.addEventListener("load", resolve);
+                    script.addEventListener("error", reject);
+                    document.head.appendChild(script);
+                });
+            }
+
+            const google = getGoogleMaps();
+            if (!google) {
+                throw new Error("Google Maps failed to load");
+            }
+
+            const geocoder = new google.maps.Geocoder();
+            geocoder.geocode(
+                { address: `${match.venue}, Victoria, Australia` },
+                (results, status) => {
+                    if (status === "OK" && results[0]) {
+                        const mapInstance = new google.maps.Map(
                             document.getElementById("map"),
                             {
-                                center: mapCenter,
+                                center: results[0].geometry.location,
                                 zoom: 15,
                             },
                         );
-                        setMap(newMap);
+                        new google.maps.Marker({
+                            map: mapInstance,
+                            position: results[0].geometry.location,
+                        });
+                        setMap(mapInstance);
+                    } else {
+                        setMapError("Failed to locate venue");
                     }
-                })
-                .catch((error) => {
-                    console.error("Error loading Google Maps:", error);
-                    setMapError(
-                        "Failed to load Google Maps. Please try again later.",
-                    );
-                });
+                },
+            );
+        } catch (err) {
+            setMapError("Failed to load map");
+            console.error("Map initialization error:", err);
         }
-    }, [isOpen, match.venue, map]);
-
-    const handleConfirm = async () => {
-        await updateAppointment(match.id, { status: "Confirmed" });
-        setStatus("Confirmed");
     };
 
-    const handleDecline = () => {
-        setShowDeclineForm(true);
+    const handleAccept = async () => {
+        try {
+            setUpdating(true);
+            await appointmentService.updateAppointment(match.id, {
+                status: "confirmed",
+            });
+            toast.success("Match accepted successfully");
+            onClose();
+        } catch (err) {
+            toast.error(
+                err.response?.data?.message || "Failed to accept match",
+            );
+        } finally {
+            setUpdating(false);
+        }
     };
 
-    const submitDecline = async () => {
-        if (declineReason.trim()) {
-            await updateAppointment(match.id, {
-                status: "Declined",
+    const handleDecline = async () => {
+        if (!declineReason.trim()) {
+            toast.error("Please provide a reason for declining");
+            return;
+        }
+
+        try {
+            setUpdating(true);
+            await appointmentService.updateAppointment(match.id, {
+                status: "declined",
                 declineReason,
             });
-            setStatus("Declined");
-            setShowDeclineForm(false);
+            toast.success("Match declined");
+            onClose();
+        } catch (err) {
+            toast.error(
+                err.response?.data?.message || "Failed to decline match",
+            );
+        } finally {
+            setUpdating(false);
         }
     };
 
-    const getDrivingDirections = () => {
-        const destination = encodeURIComponent(match.venue);
-        window.open(
-            `https://www.google.com/maps/dir/?api=1&destination=${destination}`,
-            "_blank",
-        );
-    };
+    const MatchContent = withAsyncState(({ matchDetails }) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 className="text-xl font-semibold mb-4">Match Details</h3>
+                <div className="space-y-2">
+                    <p>
+                        <strong>Teams:</strong> {matchDetails.teams}
+                    </p>
+                    <p>
+                        <strong>Date:</strong> {matchDetails.date}
+                    </p>
+                    <p>
+                        <strong>Time:</strong> {matchDetails.time}
+                    </p>
+                    <p>
+                        <strong>Venue:</strong> {matchDetails.venue}
+                    </p>
+                    <p>
+                        <strong>Status:</strong> {matchDetails.status}
+                    </p>
+                </div>
+
+                {matchDetails.status === "pending" && (
+                    <div className="mt-6 space-x-4">
+                        <Button onClick={handleAccept} disabled={updating}>
+                            {updating ? "Accepting..." : "Accept Match"}
+                        </Button>
+                        <Button
+                            onClick={() => setShowDeclineForm(true)}
+                            variant="secondary"
+                            disabled={updating}
+                        >
+                            Decline Match
+                        </Button>
+                    </div>
+                )}
+
+                {showDeclineForm && (
+                    <div className="mt-4">
+                        <textarea
+                            value={declineReason}
+                            onChange={(e) => setDeclineReason(e.target.value)}
+                            className="w-full p-2 border rounded"
+                            placeholder="Please provide a reason for declining"
+                            rows={3}
+                        />
+                        <Button
+                            onClick={handleDecline}
+                            className="mt-2"
+                            disabled={updating}
+                        >
+                            {updating ? "Declining..." : "Submit Decline"}
+                        </Button>
+                    </div>
+                )}
+            </div>
+
+            <div>
+                <h3 className="text-xl font-semibold mb-4">Location</h3>
+                {mapError ? (
+                    <div className="bg-red-50 p-4 rounded">
+                        <p className="text-red-600">{mapError}</p>
+                    </div>
+                ) : (
+                    <div
+                        id="map"
+                        className="w-full h-64 rounded-lg shadow-md"
+                    ></div>
+                )}
+            </div>
+        </div>
+    ));
 
     return (
-        <Popup isOpen={isOpen} onClose={onClose} title={match.competition}>
-            <div className="grid grid-cols-2 gap-6">
-                <div>
-                    <h3 className="text-xl font-semibold mb-2">
-                        Match Details
-                    </h3>
-                    <p>
-                        <strong>Teams:</strong> {match.teams}
-                    </p>
-                    <p>
-                        <strong>Date:</strong> {match.date}
-                    </p>
-                    <p>
-                        <strong>Time:</strong> {match.time}
-                    </p>
-                    <p>
-                        <strong>Venue:</strong> {match.venue}
-                    </p>
-                    <p>
-                        <strong>Type:</strong> {match.type}
-                    </p>
-                    <p>
-                        <strong>Status:</strong> {status}
-                    </p>
-
-                    {status === "Pending" && (
-                        <div className="mt-4">
-                            <Button onClick={handleConfirm} className="mr-2">
-                                Confirm Appointment
-                            </Button>
-                            <Button onClick={handleDecline} variant="secondary">
-                                Decline Appointment
-                            </Button>
-                        </div>
-                    )}
-
-                    {showDeclineForm && (
-                        <div className="mt-4">
-                            <textarea
-                                value={declineReason}
-                                onChange={(e) =>
-                                    setDeclineReason(e.target.value)
-                                }
-                                placeholder="Please provide a reason for declining"
-                                className="w-full p-2 border rounded"
-                                rows="3"
-                            />
-                            <Button onClick={submitDecline} className="mt-2">
-                                Submit Decline
-                            </Button>
-                        </div>
-                    )}
-                </div>
-                <div>
-                    <h3 className="text-xl font-semibold mb-2">Location</h3>
-                    {mapError ? (
-                        <p className="text-red-500">{mapError}</p>
-                    ) : (
-                        <div
-                            id="map"
-                            style={{ width: "100%", height: "300px" }}
-                        ></div>
-                    )}
-                    <Button onClick={getDrivingDirections} className="mt-2">
-                        Get Driving Directions
-                    </Button>
-                </div>
-            </div>
+        <Popup
+            isOpen={isOpen}
+            onClose={onClose}
+            title={match?.competition || "Match Details"}
+        >
+            <MatchContent
+                loading={loading}
+                error={error}
+                matchDetails={matchDetails}
+                onRetry={fetchMatchDetails}
+                loadingMessage="Loading match details..."
+                errorMessage="Failed to load match details"
+            />
         </Popup>
     );
 };

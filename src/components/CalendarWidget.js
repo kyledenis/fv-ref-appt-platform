@@ -8,6 +8,7 @@ const CalendarWidget = ({ isWidget = false }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(null);
     const [calendarDays, setCalendarDays] = useState([]);
+    const { user } = useAppContext();
 
     const changeMonth = (increment) => {
         setCurrentDate((prevDate) => {
@@ -50,11 +51,6 @@ const CalendarWidget = ({ isWidget = false }) => {
             const dayIndex = (date.getDay() + 6) % 7;
             const isAvailable = availableDates.includes(dateString);
             const isUnavailable = unavailableDates.includes(dateString);
-
-            // Debug logging
-            console.log(
-                `Date: ${dateString}, Day Index: ${dayIndex}, Available: ${isAvailable}, Unavailable: ${isUnavailable}`,
-            );
 
             days.push({
                 type: "day",
