@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'appointment_management',
-]
+    ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -115,6 +115,24 @@ REST_FRAMEWORK = {
     ]
 }
 
+LOGGING = {
+    "version": 1, 
+    "disable_existing_loggers": False,
+    "handlers": {
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": "debug.log",
+        },
+    },
+}
+
+ALLOWED_HOSTS = [
+    ".ngrok.app",
+    "localhost",
+    "127.0.0.1",
+]
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -143,4 +161,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOW_ALL_ORIGINS = True  # For development only
 
 #API for map
-GOOGLE_API_KEY = 'AIzaSyCjanLMnwAL_fC1u0atPH8zPIp6GGtQB6E'
+GOOGLE_API_KEY = ##
+
+# APP key for CellCast
+CELLCAST_APP_KEY = ## I've put this on discord under #resources but if you can't find it just dm me and I'll provide it. 

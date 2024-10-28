@@ -8,11 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-<<<<<<< HEAD
-set VIRTUAL_ENV=C:\Users\DELL\OneDrive\Documents\fv-appt-platform\backend\venv
-=======
-set VIRTUAL_ENV=C:\Users\pagen\Documents\.Work\capstone_project\fv-appt-platform\backend\venv
->>>>>>> 4c8599d458d7d21adbba25686ed1a4f1b7d28885
+set VIRTUAL_ENV=C:\Users\pagen\OneDrive\Documents\CSE3CAP\fv-appt-platform\venv
 
 if not defined PROMPT set PROMPT=$P$G
 
