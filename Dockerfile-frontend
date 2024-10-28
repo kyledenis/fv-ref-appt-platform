@@ -1,0 +1,22 @@
+FROM node:14
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+COPY src ./src
+COPY public ./public
+
+ENV REACT_APP_GOOGLE_MAPS_API_KEY=AIzaSyBtsc3WDY5kekAriLEtXcXe5YER52HO8RY
+ENV REACT_APP_API_BASE_URL=http://localhost:8000/api 
+
+RUN npm run build
+
+RUN npm install -g serve
+
+EXPOSE 3000
+
+CMD ["serve", "-s", "build", "-l", "3000"]

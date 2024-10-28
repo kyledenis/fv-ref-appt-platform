@@ -1,0 +1,42 @@
+# Base image
+FROM python:3.11-slim
+
+EXPOSE 8000
+# EXPOSE 3000
+# EXPOSE 3001
+# EXPOSE 4040
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y \
+    python3-dev \
+    build-essential \
+    curl \
+    gnupg2 \
+    unixodbc-dev \
+    unixodbc \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+    && apt-get update \
+    && ACCEPT_EULA=Y apt-get install -y msodbcsql17 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY backend-requirements.txt .
+RUN python -m pip install --upgrade pip setuptools wheel
+RUN pip install gunicorn
+RUN python -m pip install -r backend-requirements.txt --no-cache-dir
+
+RUN pip install pyngrok
+RUN pip install APScheduler
+
+WORKDIR /app/backend
+COPY backend /app/backend
+
+RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
+USER appuser
+
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "fv_backend.wsgi"]
+
