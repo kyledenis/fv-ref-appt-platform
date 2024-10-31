@@ -350,7 +350,7 @@ const Venues = () => {
                                             );
                                         }}
                                     >
-                                        <Map className="w-4 h-4 mr-2" />
+                                        <Map className="w-full h-4" />
                                         View on Maps
                                     </Button>
                                 </div>
